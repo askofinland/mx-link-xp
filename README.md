@@ -72,9 +72,13 @@ XP will start it automatically on login.
 ✅ Steps:
 
 1. Install original versions of:
-   - Firefox (web browser)
    - Thunderbird (email)
    - VLC (media)
+   - Download Firefox 40.0:
+  [https://ftp.mozilla.org/pub/firefox/releases/40.0/](https://ftp.mozilla.org/pub/firefox/releases/40.0/)
+
+- Install Firefox normally in XP — this sets it as the XP default web browser.
+
 2. Set them as default programs in XP
 3. Replace the installed EXE files with MXP versions:
 
