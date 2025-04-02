@@ -130,7 +130,7 @@ On Error GoTo 0
 For f% = 1 To homedirri.ListCount
 a$ = homedirri.path
 Err = 0
-homedirri.path = homedirri.List(f% - 1) + "\winemenu"
+homedirri.path = homedirri.List(f% - 1) + "\MXP"
 If Err = 0 Then Exit For
 homedirri.path = a$
 Next
@@ -183,7 +183,7 @@ Dim vastaus As Integer
 If c$ = "" Then
   vastaus = MsgBox("Haluatko poistaa telakan palkista?", vbYesNo + vbQuestion, "Poisto")
   If vastaus <> vbYes Then
-      ' K‰ytt‰j‰ valitsi "Ei"
+      ' K√§ytt√§j√§ valitsi "Ei"
       Cancel = True
   Else
      WritePrivateProfileString "Thunderbird", "Lock", "False", startdir$ + "\aja.ini"
