@@ -68,6 +68,10 @@ XP käynnistää sen automaattisesti.
 ### 5. Asenna assosiaatio-ohjelmat
 
 ✅ Vaiheet:
+- Lataa Firefox 40.0:
+  [https://ftp.mozilla.org/pub/firefox/releases/40.0/](https://ftp.mozilla.org/pub/firefox/releases/40.0/)
+
+- Asenna Firefox normaalisti XP:hen — tämä tekee siitä XP:n oletusselaimen.
 
 1. Asenna alkuperäiset versiot:
    - Firefox
