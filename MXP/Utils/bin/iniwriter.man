@@ -1,0 +1,55 @@
+.INIWRITER(1)                      User Commands                     INIWRITER(1)
+
+NAME
+       iniwriter - Smart INI file updater for MX·Link·XP
+
+SYNOPSIS
+       iniwriter <source_ini> <target_ini>
+
+DESCRIPTION
+       iniwriter is a lightweight utility used to update specific key-value
+       pairs in a Windows-style INI file. It is primarily designed for MX·Link·XP
+       systems, where XP programs and Linux daemons
+       communicate through a shared file, typically named aja.ini.
+
+       This tool reads the existing target INI file into memory, replaces the
+       values of keys found in the source INI, and writes the result back to
+       disk using Windows-compatible line endings (\r\n). All unrelated lines
+       are preserved (e.g., Lock=True remains intact unless explicitly replaced).
+
+KEYS THAT ARE REPLACED
+       - exe
+       - path
+       - start
+       - system
+       (additional keys in the source INI will also override the target)
+
+USAGE
+       iniwriter /path/to/source.ini /path/to/aja.ini
+
+       Example:
+           iniwriter /home/user/MX·Link·XP folder/firefox.ini /home/user/ramdisk/aja.ini
+
+       This example injects content from firefox.ini into the shared aja.ini,
+       causing XP to launch Firefox.
+
+FEATURES
+       - Non-destructive editing of existing INI files
+       - Ensures compatibility with Windows XP by writing in CRLF (ANSI)
+       - Intended for use in .desktop launchers or shell scripts
+       - Simple, fast, no dependencies
+
+EXIT STATUS
+       0  if successful
+       1  if usage is incorrect or files cannot be read/written
+
+FILES
+       /usr/bin/iniwriter       The executable
+       /home/user/ramdisk/aja.ini   Typical MX·Link·XP communication file
+
+AUTHOR
+       Developed as part of the MX·Link·XP Project
+
+VERSION
+       0.1
+

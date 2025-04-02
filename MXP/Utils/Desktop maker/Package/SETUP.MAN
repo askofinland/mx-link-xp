@@ -1,0 +1,61 @@
+===============================
+MXP - Desktop maker Installer
+===============================
+
+This package installs the "Desktop maker" tool, part of the MXP system
+for launching Windows applications from Linux using .desktop files.
+
+-----------------------------------
+INSTALLATION INSTRUCTIONS (Windows XP)
+-----------------------------------
+
+1. Run the file:  setup.exe
+
+2. The installer will:
+   - Create the folder:
+     C:\Program Files\Desktop maker
+   - Extract all files from "Desktop maker.CAB"
+   - Register COMDLG32.OCX silently
+   - Prompt you whether to launch Desktop maker after install
+
+3. If you select "Yes", Desktop maker will start immediately.
+
+-----------------------------------
+REQUIREMENTS
+-----------------------------------
+
+- Operating System: Windows XP (32-bit)
+- No admin privileges required (unless your system requires it for regsvr32)
+- Visual Basic 6 Runtime (automatically included in CAB)
+
+-----------------------------------
+NOTES
+-----------------------------------
+
+- This tool is intended to be used inside the MXP system.
+- You can create Linux-compatible `.desktop` launchers for any Windows `.exe`
+  and test them within the MXP XP environment.
+
+- The .desktop file should then be transferred or used from your Linux desktop.
+
+-----------------------------------
+MANUAL LAUNCH
+-----------------------------------
+
+If you skipped the final launch step:
+You can manually run the program via:
+
+   Start Menu > Run >
+   "C:\Program Files\Desktop maker\Desktop maker.exe"
+
+-----------------------------------
+CONTACT
+-----------------------------------
+
+This software is developed as part of the MXP hobby project.
+
+Contributions, feedback or ideas are welcome.
+
+Author: [Your Name or Team]
+Email : [your-email@example.com]
+

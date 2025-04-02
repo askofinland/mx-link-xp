@@ -1,0 +1,25 @@
+!define BLANK ""
+"E:\home\asko\Asiakirjat\Bassit\MXP_koodit\Utils\Desktop maker\setup.obj" : &
+"E:\home\asko\Asiakirjat\Bassit\MXP_koodit\Utils\Desktop maker\Package\setup&
+.c" .AUTODEPEND
+ @E:
+ cd "E:\home\asko\Asiakirjat\Bassit\MXP_koodit\Utils\Desktop maker"
+ *wcc386 Package\setup.c -i="C:\WATCOM/h;C:\WATCOM/h/nt" -w4 -e25 -zq -od -d&
+2 -6r -bt=nt -fo=.obj -mf
+
+"E:\home\asko\Asiakirjat\Bassit\MXP_koodit\Utils\Desktop maker\setup.exe" : &
+"E:\home\asko\Asiakirjat\Bassit\MXP_koodit\Utils\Desktop maker\setup.obj" .A&
+UTODEPEND
+ @E:
+ cd "E:\home\asko\Asiakirjat\Bassit\MXP_koodit\Utils\Desktop maker"
+ @%write setup.lk1 FIL setup.obj
+ @%append setup.lk1 
+!ifneq BLANK ""
+ *wlib -q -n -b setup.imp 
+ @%append setup.lk1 LIBR setup.imp
+!endif
+!ifneq BLANK ""
+ @%append setup.lk1 
+!endif
+ *wlink name setup d all sys nt_win op m op maxe=25 op q op symf @setup.lk1
+
