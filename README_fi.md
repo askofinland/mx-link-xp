@@ -46,7 +46,8 @@ gcc -o ajavahti ajavahti.c
 
 - Suorita:
   ```
-  /home/user/MXP/Utils/Desktop\ maker/Package/setup.exe
+  /home/user/MXP/Utils/Desktop maker/Package/setup.exe
+  ( e:\home\user\MXP\Utils\Desktop maker\Package\setup.exe) XP:ssä
   ```
 - Asennuspaikka: `C:\Program Files\Desktop maker\`
 - Rekisteröi: `COMDLG32.OCX`
@@ -121,6 +122,8 @@ Käytä **Desktop Maker** -ohjelmaa.
 
 ```bash
 sudo cp /home/user/MXP/Utils/bin/iniwriter /usr/bin/
+sudo chmod +x /usr/bin/iniwriter
+
 ```
 
 ---
