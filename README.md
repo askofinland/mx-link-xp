@@ -48,7 +48,8 @@ gcc -o ajavahti ajavahti.c
 
 - Run:
   ```
-  /home/user/MXP/Utils/Desktop\ maker/Package/setup.exe
+  /home/user/MXP/Utils/Desktop/maker/Package/setup.exe
+  (E:\home\user\MXP\Utils\Desktop maker\Package\setup.exe)
   ```
 - Installs to: `C:\Program Files\Desktop maker\`
 - Registers: `COMDLG32.OCX`
@@ -123,6 +124,8 @@ Use **Desktop Maker** to create `.desktop` launchers for other XP apps.
 
 ```bash
 sudo cp /home/user/MXP/Utils/bin/iniwriter /usr/bin/
+sudo chmod +x /usr/bin/iniwriter
+
 ```
 
 ---
@@ -138,7 +141,7 @@ sudo cp /home/user/MXP/Utils/bin/iniwriter /usr/bin/
 - `ramdisk/` → shared folder
 - `aja.ini` → command file between systems
 
-> `.desktop` files are **not** stored here — they go on the user's actual Linux desktop.
+> `.desktop` files are **not** stored here — they go on the user's actual Linux desktop folder.
 
 ---
 
