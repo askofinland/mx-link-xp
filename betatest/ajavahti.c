@@ -274,7 +274,7 @@ void process_ini_file(const char *dir_path) {
     }
     fclose(file);
 
-    if (start_flag && command[0] != '\0') {
+    if (start_flag && command[0] != '\0' && unix_mode) {
         update_ini_file(dir_path);
         execute_command(command, unix_mode, activate_window, dir_path);
     }
