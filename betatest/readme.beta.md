@@ -120,7 +120,6 @@ Thanks to **Asko** for defining the control flow, logic structure, and system de
 ├── ajavahti.c
 ├── xpserv.exe
 ├── README.beta.md ← this file
-└── ramdisk/ ← shared working directory
 ```
 
 ---
