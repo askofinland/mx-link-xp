@@ -6,49 +6,14 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <time.h>
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-#include <ctype.h>
+#include <sys/types.h>
 
 #define FILE_NAME "aja.ini"
-#define MAX_TITLE_LEN 1024
 #define MAX_LINE_LEN 2048
 
-// Debug-tulostus
 #define DEBUG(...) fprintf(stderr, __VA_ARGS__)
 
-int contains_ignore_case(const char *hay, const char *needle) {
-    char h[MAX_TITLE_LEN], n[MAX_TITLE_LEN];
-    strncpy(h, hay, MAX_TITLE_LEN);
-    strncpy(n, needle, MAX_TITLE_LEN);
-    for (int i = 0; h[i]; i++) h[i] = tolower(h[i]);
-    for (int i = 0; n[i]; i++) n[i] = tolower(n[i]);
-    return strstr(h, n) != NULL;
-}
-
-void get_active_window_title(Display *display, char *title, size_t max_len) {
-    Window focused;
-    int revert;
-    Atom net_wm_name = XInternAtom(display, "_NET_WM_NAME", False);
-    XGetInputFocus(display, &focused, &revert);
-
-    Atom actual_type;
-    int actual_format;
-    unsigned long nitems, bytes_after;
-    unsigned char *prop = NULL;
-
-    int status = XGetWindowProperty(display, focused, net_wm_name, 0, (~0L), False,
-                                    AnyPropertyType, &actual_type, &actual_format,
-                                    &nitems, &bytes_after, &prop);
-
-    if (status == Success && prop) {
-        strncpy(title, (char *)prop, max_len - 1);
-        title[max_len - 1] = '\0';
-        XFree(prop);
-    } else {
-        strcpy(title, "(tuntematon)");
-    }
-}
+// --- PDF-TULOSTAJA ---
 
 void print_and_delete_pdf(const char *pdf_path) {
     struct stat file_stat;
@@ -82,78 +47,26 @@ void print_and_delete_pdf(const char *pdf_path) {
     }
 }
 
-void update_aja_ini_focus(const char *filepath) {
-    FILE *fp = fopen(filepath, "r");
-    if (!fp) return;
-
-    FILE *tmp = tmpfile();
-    if (!tmp) {
-        fclose(fp);
-        return;
-    }
-
-    char line[MAX_LINE_LEN];
-    int in_aja = 0;
-    char saved_path[PATH_MAX] = "";
-    int aja_kirjoitettu = 0;
-
-    DEBUG("📝 Kirjoitetaan XP-komento ini-tiedostoon...\n");
-
-    while (fgets(line, sizeof(line), fp)) {
-        if (strncmp(line, "[Aja]", 5) == 0) {
-            in_aja = 1;
-            aja_kirjoitettu = 1;
-
-            while (fgets(line, sizeof(line), fp)) {
-                if (strncmp(line, "path=", 5) == 0) {
-                    strncpy(saved_path, line + 5, sizeof(saved_path) - 1);
-                    saved_path[strcspn(saved_path, "\r\n")] = 0;
-                } else if (line[0] == '[') {
-                    break;
+void pdf_daemon(const char *dir_path) {
+    while (1) {
+        DIR *dir = opendir(dir_path);
+        if (dir) {
+            struct dirent *entry;
+            while ((entry = readdir(dir)) != NULL) {
+                const char *ext = strrchr(entry->d_name, '.');
+                if (ext && strcasecmp(ext, ".pdf") == 0) {
+                    char pdf_path[PATH_MAX];
+                    snprintf(pdf_path, sizeof(pdf_path), "%s/%s", dir_path, entry->d_name);
+                    print_and_delete_pdf(pdf_path);
                 }
             }
-
-            fputs("[Aja]\r\n", tmp);
-            fputs("exe=\r\n", tmp);
-            fputs("system=xp\r\n", tmp);
-            fputs("aktivoi=hide\r\n", tmp);
-            fputs("start=true\r\n", tmp);
-            fprintf(tmp, "path=%s\r\n", saved_path);
-
-            if (line[0] == '[') {
-                fputs(line, tmp);
-                in_aja = 0;
-            }
-        } else if (!in_aja) {
-            fprintf(tmp, "%s", line);
+            closedir(dir);
         }
+        sleep(1);
     }
-
-    if (!aja_kirjoitettu) {
-        fputs("[Aja]\r\n", tmp);
-        fputs("exe=\r\n", tmp);
-        fputs("system=xp\r\n", tmp);
-        fputs("aktivoi=hide\r\n", tmp);
-        fputs("start=true\r\n", tmp);
-        fprintf(tmp, "path=%s\r\n", saved_path);
-    }
-
-    rewind(tmp);
-    FILE *out = fopen(filepath, "w");
-    if (!out) {
-        fclose(fp);
-        fclose(tmp);
-        return;
-    }
-
-    while (fgets(line, sizeof(line), tmp)) {
-        fputs(line, out);
-    }
-
-    fclose(fp);
-    fclose(tmp);
-    fclose(out);
 }
+
+// --- INI-KÄSITTELIJÄ ---
 
 void update_ini_file(const char *dir_path) {
     char file_path[PATH_MAX];
@@ -188,6 +101,7 @@ void update_ini_file(const char *dir_path) {
 }
 
 void execute_command(char *cmd, char *activate, const char *dir_path) {
+    // Aktivointi yrittää vain kerran
     if (strlen(activate) > 0) {
         char activate_cmd[256];
         snprintf(activate_cmd, sizeof(activate_cmd), "wmctrl -a \"%s\"", activate);
@@ -217,44 +131,11 @@ void execute_command(char *cmd, char *activate, const char *dir_path) {
     }
 }
 
-int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        fprintf(stderr, "Käyttö: %s <hakemisto>\n", argv[0]);
-        return 1;
-    }
-
-    const char *dir_path = argv[1];
+void ini_daemon(const char *dir_path) {
     char ini_path[PATH_MAX];
     snprintf(ini_path, sizeof(ini_path), "%s/aja.ini", dir_path);
 
-    Display *display = XOpenDisplay(NULL);
-    if (!display) {
-        fprintf(stderr, "❌ X-yhteys epäonnistui.\n");
-        return 1;
-    }
-
-    int xpaktiivi = 0;
-    char win_title[MAX_TITLE_LEN] = "";
-
-    DEBUG("🔁 Ohjelma käynnistetty vakaalla silmukalla.\n");
-
     while (1) {
-        // 1. PDF-skannaus
-        DIR *dir = opendir(dir_path);
-        if (dir) {
-            struct dirent *entry;
-            while ((entry = readdir(dir)) != NULL) {
-                const char *ext = strrchr(entry->d_name, '.');
-                if (ext && strcasecmp(ext, ".pdf") == 0) {
-                    char pdf_path[PATH_MAX];
-                    snprintf(pdf_path, sizeof(pdf_path), "%s/%s", dir_path, entry->d_name);
-                    print_and_delete_pdf(pdf_path);
-                }
-            }
-            closedir(dir);
-        }
-
-        // 2. Aja.ini käsittely
         FILE *f = fopen(ini_path, "r");
         int start = 0, is_unix = 0;
         char cmd[512] = "", akt[128] = "";
@@ -282,28 +163,37 @@ int main(int argc, char *argv[]) {
             DEBUG("✅ start=true & system=unix -> suoritetaan.\n");
             update_ini_file(dir_path);
             execute_command(cmd, akt, dir_path);
-        } else {
-            // 3. XP-ikkunan tarkistus
-            get_active_window_title(display, win_title, sizeof(win_title));
-
-            int nyt_xp =
-                (contains_ignore_case(win_title, "vmware") ||
-                 contains_ignore_case(win_title, "virtualbox")) &&
-                contains_ignore_case(win_title, "xp");
-
-            if (nyt_xp && !xpaktiivi) {
-                DEBUG("🧠 XP-ikkuna havaittu aktiiviseksi.\n");
-                xpaktiivi = 1;
-            } else if (!nyt_xp && xpaktiivi) {
-                DEBUG("📤 XP-ikkuna suljettu -> kirjoitetaan ini.\n");
-                update_aja_ini_focus(ini_path);
-                xpaktiivi = 0;
-            }
         }
 
-        sleep(1);
+        usleep(100000);  // 100 000 mikrosekuntia = 100 ms
+
+    }
+}
+
+// --- MAIN ---
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Käyttö: %s <hakemisto>\n", argv[0]);
+        return 1;
     }
 
-    XCloseDisplay(display);
+    const char *dir_path = argv[1];
+
+    DEBUG("🌙 Käynnistetään taustaprosessit...\n");
+
+    pid_t pid1 = fork();
+    if (pid1 == 0) {
+        pdf_daemon(dir_path);
+        exit(0);
+    }
+
+    pid_t pid2 = fork();
+    if (pid2 == 0) {
+        ini_daemon(dir_path);
+        exit(0);
+    }
+
+    DEBUG("👋 Pääprosessi poistuu, taustaprosessit jatkavat.\n");
     return 0;
 }
