@@ -1,33 +1,28 @@
 # MX·Link·XP – Beta Branch
 
 This branch contains upcoming and experimental features before official release.  
-The focus is on **stability**, not performance.
-
----
+The focus is on stability, not performance.
 
 ## 🔧 Components under test
 
-✅ `ajavahti` – unified Linux-side daemon  
-✅ `xpserv` – XP-side background process with focus detection and INI output
-
----
+✅ **ajavahti** – unified Linux-side daemon  
+✅ **xpserv** – XP-side background process with INI output
 
 ## 🧪 What to test
 
-- Automatic detection of XP VM (VirtualBox or VMware)
-- Window deactivation handling: XP loses focus → `aja.ini` updated
 - Command triggering via `[Aja]` section in `aja.ini`
-- Printing of **all `.pdf` files** in shared RAM directory
+- Printing of all `.pdf` files from shared RAM directory
 - Full round-trip communication via shared INI file
+- Fast response (100 ms) to changes in `aja.ini`
 
----
+> 🗑️ **Removed:** XP window polling (VirtualBox/VMware) – feature was found impractical and confusing
 
 ## 🛠 How to run
 
 ### 1. Build `ajavahti` on Linux:
 
 ```bash
-gcc -o ajavahti ajavahti.c -lX11
+gcc -o ajavahti ajavahti.c
 ```
 
 ### 2. Launch the daemon:
@@ -36,39 +31,31 @@ gcc -o ajavahti ajavahti.c -lX11
 ./ajavahti /home/user/ramdisk
 ```
 
-This should point to the shared folder used with XP (e.g. `ramdisk`).
+> The argument should point to the shared folder used with XP (e.g. `ramdisk`).
 
-### 3. Start `xpserv.exe` on XP:
+### 3. Start `xpserv.exe` on Windows XP:
 
-- Manually, or
+- Manually, or  
 - Add to Startup folder
-
----
 
 ## 🔍 How it works (logic)
 
 | Step | Action |
 |------|--------|
-| 1️⃣  | Scan directory for any `.pdf` files → print and delete |
-| 2️⃣  | Check `aja.ini` for `system=unix` + `start=true` → run command |
-| 3️⃣  | Monitor active window title for `"xp"` + `"virtualbox"` or `"vmware"` |
-| 🔁  | If XP VM loses focus → write `system=xp`, `start=true`, etc. to `aja.ini` |
+| 1️⃣   | Scan directory for any `.pdf` files → print and delete |
+| 2️⃣   | Check `aja.ini` for `system=unix` and `start=true` → run command |
 
----
+> The daemon runs in the background as two separate processes (forked): one for printing, one for command execution.
 
-## 💡 Supported XP environments
+## 🖨️ PDF printing
 
-✔️ Oracle VM VirtualBox  
-✔️ VMware Workstation / Player
+All `.pdf` files found in the specified directory will be:
 
-Detection works by scanning the active window title with:
+- Printed using `lp`
+- Deleted after successful print
+- Intended use: RAM-based shared folder between XP and Linux host
 
-- `contains("xp")`  
-- and `contains("virtualbox")` or `contains("vmware")`
-
----
-
-## 🧾 Sample `aja.ini`
+## 📝 Sample `aja.ini`
 
 ```ini
 [Aja]
@@ -82,36 +69,25 @@ path=c:\Program Files\Microsoft Office\OFFICE11
 Lock=True
 ```
 
----
-
 ## 🚦 Status
 
-- ✅ Stable loop with no forks or threads
-- ✅ Active window polling via `X11`
-- ✅ PDF printing and cleanup
-- ✅ Debug output to `stderr`
-- ⏳ Production testing pending
-
----
+✅ Stable loop with forked daemons  
+✅ PDF printing and cleanup  
+✅ INI command triggering  
+✅ Debug output to `stderr`  
+⏳ Production testing pending
 
 ## 🔍 Troubleshooting
 
-- If nothing seems to happen:
-  - Run from terminal and check debug output
-  - Ensure `wmctrl` and `lp` are installed
-  - Verify X11 display is available
-- You can test window titles with:
-  ```bash
-  wmctrl -l
-  ```
+If nothing seems to happen:
 
----
+- Run from terminal and check debug output
+- Ensure `lp` is installed and available
+- Verify that PDF files are present in the specified folder
 
 ## 📢 Special thanks
 
 Thanks to **Asko** for defining the control flow, logic structure, and system design.
-
----
 
 ## 📁 Repository structure
 
@@ -122,7 +98,5 @@ Thanks to **Asko** for defining the control flow, logic structure, and system de
 ├── README.beta.md ← this file
 ```
 
----
-
-This is a test-focused release.  
-Bug reports, window title outputs, and testing feedback welcome!
+> This is a test-focused release.  
+Bug reports, feedback, and edge case examples welcome!
