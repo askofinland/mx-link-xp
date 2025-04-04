@@ -198,9 +198,21 @@ void execute_command(char *cmd, char *activate, const char *dir_path) {
         }
     }
 
-    DEBUG("🚀 Suoritetaan: %s\n", cmd);
+    // Poista "start.exe /unix" tai "/unix" komennon alusta
+    char *clean_cmd = NULL;
+
+    if ((clean_cmd = strstr(cmd, "start.exe /unix ")) != NULL) {
+        clean_cmd += strlen("start.exe /unix ");
+    } else if ((clean_cmd = strstr(cmd, "/unix ")) != NULL) {
+        clean_cmd += strlen("/unix ");
+    } else {
+        clean_cmd = cmd;
+    }
+
+    DEBUG("🚀 Suoritetaan: %s\n", clean_cmd);
+
     if (fork() == 0) {
-        execlp("sh", "sh", "-c", cmd, (char *)NULL);
+        execlp("sh", "sh", "-c", clean_cmd, (char *)NULL);
         exit(EXIT_FAILURE);
     }
 }
