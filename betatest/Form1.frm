@@ -47,6 +47,9 @@ Dim startdir$
       ByVal X As Long, ByVal Y As Long, ByVal hIcon As Long) As Long
 
       Dim path$, nIcon As Long
+      Private Declare Function FindExecutableA Lib "shell32.dll" _
+    (ByVal lpFile As String, ByVal lpDirectory As String, ByVal lpResult As String) As Long
+
       
       Private Declare Function WritePrivateProfileString Lib "kernel32" Alias "WritePrivateProfileStringA" (ByVal lpApplicationName As String, ByVal lpKeyName As Any, ByVal lpString As Any, ByVal lpFileName As String) As Long
       Private Declare Function GetPrivateProfileString Lib "kernel32" Alias "GetPrivateProfileStringA" (ByVal lpApplicationName As String, ByVal lpKeyName As Any, ByVal lpDefault As String, ByVal lpReturnedString As String, ByVal nSize As Long, ByVal lpFileName As String) As Long
@@ -57,6 +60,32 @@ Dim nochkforstart As Integer
 Const VK_STARTKEY = &H5B
 Const VK_M = 77
 Const KEYEVENTF_KEYUP = &H2
+Public Function EtsiExe(ByVal tiedosto As String, ByVal hakemisto As String) As String
+    Dim tulos As String * 260
+    Dim ret As Long
+    Dim tempstr$
+    
+    
+    If InStr(LCase$(tiedosto), ".exe") Then
+       EtsiExe = tiedosto
+       Exit Function
+    End If
+    tempstr$ = tiedosto
+    ' Käytä FindExecutable
+    ret = FindExecutableA(tiedosto, hakemisto, tulos)
+Dim f As Integer
+    If ret > 32 Then
+        tempstr$ = ""
+        For f = 1 To Len(Trim$(Left$(tulos, InStr(tulos, vbNullChar) - 1)))
+        If Asc(Mid$(Trim$(Left$(tulos, InStr(tulos, vbNullChar) - 1)), f, 1)) <> 0 Then
+           tempstr$ = tempstr$ + Mid$(Trim$(Left$(tulos, InStr(tulos, vbNullChar) - 1)), f, 1)
+        End If
+        Next
+        EtsiExe = tempstr$ + " " + Chr$(34) + tiedosto + Chr$(34)
+    Else
+        EtsiExe = ""
+    End If
+End Function
 
 Public Function ReadINI(riSection As String, riKey As String, riDefault As String, INIFile)
     Dim sRiBuffer As String
@@ -142,32 +171,22 @@ If startdir$ <> "" Then
              temppipath = CurDir$
              ChDrive Left$(ReadINI("Aja", "path", "", startdir$ + "\aja.ini"), 2)
              ChDir ReadINI("Aja", "path", "", startdir$ + "\aja.ini")
-             f% = Shell(temppiexe, 1)
+             f% = Shell(EtsiExe(temppiexe, CurDir$), 1)
              ChDrive Left$(temppipath, 2)
              ChDir temppipath
              WritePrivateProfileString "Aja", "start", "", startdir$ + "\aja.ini"
              WritePrivateProfileString "Aja", "system", "", startdir$ + "\aja.ini"
              WritePrivateProfileString "Aja", "aktivoi", "", startdir$ + "\aja.ini"
              WritePrivateProfileString "Aja", "path", "c:\something", startdir$ + "\aja.ini"
-
-
          Else
-             If ReadINI("Aja", "aktivoi", "", startdir$ + "\aja.ini") = "hide" Then
-                WritePrivateProfileString "Aja", "start", "", startdir$ + "\aja.ini"
-                WritePrivateProfileString "Aja", "system", "", startdir$ + "\aja.ini"
-                WritePrivateProfileString "Aja", "aktivoi", "", startdir$ + "\aja.ini"
-                WritePrivateProfileString "Aja", "path", "c:\something", startdir$ + "\aja.ini"
-
-               'WinKey down
-                keybd_event VK_STARTKEY, 0, 0, 0
-                'M key down
-                keybd_event VK_M, 0, 0, 0
-                'M key up
-                keybd_event VK_M, 0, KEYEVENTF_KEYUP, 0
-                'WinKey up
-                 keybd_event VK_STARTKEY, 0, KEYEVENTF_KEYUP, 0
-             End If
+             WritePrivateProfileString "Aja", "start", "", startdir$ + "\aja.ini"
+             WritePrivateProfileString "Aja", "system", "", startdir$ + "\aja.ini"
+             WritePrivateProfileString "Aja", "aktivoi", "", startdir$ + "\aja.ini"
+             WritePrivateProfileString "Aja", "path", "c:\something", startdir$ + "\aja.ini"
          End If
+      End If
+  If ReadINI("XP", "ROOT", "", startdir$ + "\aja.ini") = "" Then
+     WritePrivateProfileString "XP", "ROOT", Left$(startdir$, 3), startdir$ + "\aja.ini"
   End If
 End If
 
