@@ -1,102 +1,159 @@
-# MX·Link·XP – Beta Branch
+# MX·Link·XP – Beta Branch (Testing in Progress)
 
 This branch contains upcoming and experimental features before official release.  
-The focus is on stability, not performance.
+Focus is on **stability and logic**, not performance.
 
-## 🔧 Components under test
+## 🔧 Components under Test
 
-✅ **ajavahti** – unified Linux-side daemon  
-✅ **xpserv** – XP-side background process with INI output
+| Component    | Status    | Description                                                   |
+|--------------|-----------|---------------------------------------------------------------|
+| `ajavahti`   | ✅ Ready  | Linux-side daemon that reacts to `aja.ini` and prints PDFs    |
+| `xpserv.exe` | ✅ Updated| XP-side daemon that reads `aja.ini` and executes commands     |
+| `xpasso`     | ✅ New    | Linux tool that translates Linux paths to XP format and triggers XP execution |
 
-## 🧪 What to test
+> ⚠️ **Note:** `xpasso` **requires the updated version of** `xpserv.exe`.  
+> Older versions of `xpserv.exe` do not support non-`.exe` file types or `[XP]` → `ROOT=` lookup logic.
 
-- Command triggering via `[Aja]` section in `aja.ini`
-- Printing of all `.pdf` files from shared RAM directory
-- Full round-trip communication via shared INI file
-- Fast response (100 ms) to changes in `aja.ini`
 
-> 🗑️ **Removed:** XP window polling (VirtualBox/VMware) – feature was found impractical and confusing
+## 🧪 What to Test
 
-## 🛠 How to run
+- Triggering commands via `[Aja]` section in `aja.ini`
+- Automatic printing of `.pdf` files from the shared RAM folder
+- Full communication cycle between Linux and XP via `aja.ini`
+- Fast reaction (~100 ms) to `aja.ini` changes
+- 🗑️ Removed: XP window polling (was unreliable and unnecessary)
 
-### 1. Build `ajavahti` on Linux:
+## 🛠 How to Run
 
-```bash
+### 1. Build and launch `ajavahti` on Linux
+
+```
 gcc -o ajavahti ajavahti.c
+./ajavahti /home/username/ramdisk
 ```
 
-### 2. Launch the daemon:
+Replace `/home/username/ramdisk` with the actual shared folder path.
 
-```bash
-./ajavahti /home/user/ramdisk
+### 2. Launch `xpserv.exe` on Windows XP
+
+- Add to Startup:
+  `C:\Documents and Settings\All Users\Start Menu\Programs\Startup\xpserv.exe`
+- Or start manually during testing
+
+## 🧰 Using `xpasso`
+
+`xpasso` is a Linux-side tool that prepares `aja.ini` for XP-side execution. It:
+
+- Converts a Linux-style path to XP-style (e.g. `/home/user/file.pdf` → `e:\home\user\file.pdf`)
+- Extracts folder path and filename
+- Inserts correct values into `[Aja]` section
+- Sets `start=true` so XP reacts
+- Automatically reads `[XP]` → `ROOT=` to know XP's view of root (`e:\` etc.)
+
+### Example
+
+```
+xpasso /home/user/Documents/manual.pdf
 ```
 
-> The argument should point to the shared folder used with XP (e.g. `ramdisk`).
+Updates `aja.ini` to:
 
-### 3. Start `xpserv.exe` on Windows XP:
-
-- Manually, or  
-- Add to Startup folder
-
-## 🔍 How it works (logic)
-
-| Step | Action |
-|------|--------|
-| 1️⃣   | Scan directory for any `.pdf` files → print and delete |
-| 2️⃣   | Check `aja.ini` for `system=unix` and `start=true` → run command |
-
-> The daemon runs in the background as two separate processes (forked): one for printing, one for command execution.
-
-## 🖨️ PDF printing
-
-All `.pdf` files found in the specified directory will be:
-
-- Printed using `lp`
-- Deleted after successful print
-- Intended use: RAM-based shared folder between XP and Linux host
-
-## 📝 Sample `aja.ini`
-
-```ini
+```
 [Aja]
-exe=WINWORD.EXE
+exe=manual.pdf
 system=xp
 aktivoi=
 start=true
-path=c:\Program Files\Microsoft Office\OFFICE11
-
-[Google Chrome]
-Lock=True
+path=e:\home\user\Documents\
 ```
 
-## 🚦 Status
+This makes `xpserv.exe` in XP run the default associated PDF viewer (like Adobe Reader) with that file.
 
-✅ Stable loop with forked daemons  
-✅ PDF printing and cleanup  
-✅ INI command triggering  
-✅ Debug output to `stderr`  
-⏳ Production testing pending
+## 📄 PDF Auto-Printing (via `ajavahti`)
 
-## 🔍 Troubleshooting
+When a `.pdf` is dropped into the shared folder, `ajavahti` will:
 
-If nothing seems to happen:
+- Automatically send it to the default printer using `lp`
+- Delete the file after successful printing
+- Respond within ~100 ms
 
-- Run from terminal and check debug output
-- Ensure `lp` is installed and available
-- Verify that PDF files are present in the specified folder
+Perfect for: "Print from XP, process on Linux"
 
-## 📢 Special thanks
-
-Thanks to **Asko** for defining the control flow, logic structure, and system design.
-
-## 📁 Repository structure
+## 📂 Example `aja.ini`
 
 ```
-.
-├── ajavahti.c
-├── xpserv.exe
-├── README.beta.md ← this file
+[Aja]
+exe=example.doc
+system=xp
+aktivoi=
+start=true
+path=c:\Documents and Settings\user\My Documents\
+
+[XP]
+ROOT=e:\
 ```
+
+## 🧠 Version Compatibility
+
+- `xpasso` **requires** the updated `xpserv.exe`
+- New `xpserv.exe` features:
+  - Adds `[XP]` section and `ROOT=` if missing
+  - Executes files based on file extension associations (not just `.exe`)
+  - Supports `.pdf`, `.jpg`, `.ods`, `.doc`, etc.
+
+## 🔧 Recommended Desktop Integration
+
+You can assign filetypes in Linux (e.g. Thunar) to `xpasso`:
+
+Example `.desktop` entry:
+
+```
+[Desktop Entry]
+Name=Adobe PDF Reader for XP
+Exec=/usr/bin/xpasso %f
+Icon=acroread
+Type=Application
+MimeType=application/pdf;
+NoDisplay=false
+```
+
+Register with:
+
+```
+xdg-mime default xpasso.desktop application/pdf
+```
+
+Also possible:
+- `xpgimp.desktop` → opens images in XP GIMP
+- `xppaint.desktop` → opens BMPs in XP Paint
+- `xpxcel.desktop` → opens `.xls` in XP Excel
+
+## ✅ Status Summary
+
+| Feature                     | Status     |
+|-----------------------------|------------|
+| Forked daemon logic         | ✅ Stable  |
+| PDF auto-print              | ✅ Works   |
+| `aja.ini` command control   | ✅ Stable  |
+| XP-side non-exe handling    | ✅ New     |
+| Full Linux↔XP workflow      | ⏳ Testing |
+| Thunar `.desktop` usage     | ✅ Works   |
+| XP focus with `wmctrl`      | ✅ Optional|
+
+## 🛠 Troubleshooting
+
+| Problem                  | Solution                                         |
+|--------------------------|--------------------------------------------------|
+| Nothing happens          | Run `ajavahti` in terminal and check output     |
+| PDF not printing         | Ensure `lp` works; check file permissions       |
+| XP doesn't open file     | Use updated `xpserv.exe`; check file type assoc |
+| Path incorrect           | Make sure `[XP]` → `ROOT=` exists in `aja.ini`  |
+
+## 🙏 Credits
+
+Thanks to **Asko** for inventing the concept, structure, and implementing system logic for MX·Link·XP. This beta would not exist without his design work and real-world testing.
+
+> 🧪 This is a beta/testing branch. Bug reports, feedback, and edge-case examples are highly welcome!
 
 > This is a test-focused release.  
 Bug reports, feedback, and edge case examples welcome!
