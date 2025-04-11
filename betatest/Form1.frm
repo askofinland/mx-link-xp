@@ -60,6 +60,54 @@ Dim nochkforstart As Integer
 Const VK_STARTKEY = &H5B
 Const VK_M = 77
 Const KEYEVENTF_KEYUP = &H2
+Private Declare Function MultiByteToWideChar Lib "kernel32" ( _
+    ByVal CodePage As Long, ByVal dwFlags As Long, _
+    ByVal lpMultiByteStr As Long, ByVal cbMultiByte As Long, _
+    ByVal lpWideCharStr As Long, ByVal cchWideChar As Long _
+) As Long
+
+Private Declare Function WideCharToMultiByte Lib "kernel32" ( _
+    ByVal CodePage As Long, ByVal dwFlags As Long, _
+    ByVal lpWideCharStr As Long, ByVal cchWideChar As Long, _
+    ByVal lpMultiByteStr As Long, ByVal cbMultiByte As Long, _
+    ByVal lpDefaultChar As String, ByVal lpUsedDefaultChar As Long _
+) As Long
+
+Public Sub Fix_UTF8_And_Save_As_ANSI(ByVal tiedosto As String)
+    Dim f As Integer
+    Dim b() As Byte
+    Dim wideLen As Long
+    Dim wideStr As String
+    Dim ansiLen As Long
+    Dim ansibuf() As Byte
+
+    ' --- Lue UTF-8 bin‰‰rin‰ ---
+    f = FreeFile
+    Open tiedosto For Binary As #f
+    ReDim b(LOF(f) - 1)
+    Get #f, , b
+    Close #f
+
+    ' --- UTF-8 ? Unicode (WideChar) ---
+    wideLen = MultiByteToWideChar(65001, 0, VarPtr(b(0)), UBound(b) + 1, 0, 0)
+    If wideLen = 0 Then Exit Sub
+
+    wideStr = String$(wideLen, vbNullChar)
+    MultiByteToWideChar 65001, 0, VarPtr(b(0)), UBound(b) + 1, StrPtr(wideStr), wideLen
+
+    ' --- Unicode ? ANSI / Windows-1252 ---
+    ansiLen = WideCharToMultiByte(1252, 0, StrPtr(wideStr), -1, 0, 0, vbNullString, 0)
+    If ansiLen = 0 Then Exit Sub
+
+    ReDim ansibuf(ansiLen - 1)
+    WideCharToMultiByte 1252, 0, StrPtr(wideStr), -1, VarPtr(ansibuf(0)), ansiLen, vbNullString, 0
+
+    ' --- Kirjoita ANSI-tiedosto ---
+    f = FreeFile
+    Open tiedosto For Binary As #f
+    Put #f, , ansibuf   ' ? T‰m‰ on se korjattu rivi
+    Close #f
+End Sub
 Public Function EtsiExe(ByVal tiedosto As String, ByVal hakemisto As String) As String
     Dim tulos As String * 260
     Dim ret As Long
@@ -166,6 +214,8 @@ Dim f%
 
 If startdir$ <> "" Then
       If ReadINI("Aja", "system", "", startdir$ + "\aja.ini") = "xp" And ReadINI("Aja", "start", "", startdir$ + "\aja.ini") = "true" Then
+         Call Fix_UTF8_And_Save_As_ANSI(startdir$ + "\aja.ini")
+        
          temppiexe = ReadINI("Aja", "exe", "", startdir$ + "\aja.ini")
          If temppiexe <> "" And ReadINI("Aja", "path", "", startdir$ + "\aja.ini") <> "" Then
              temppipath = CurDir$
