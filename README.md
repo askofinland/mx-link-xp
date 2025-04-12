@@ -154,6 +154,96 @@ sudo chmod +x /usr/bin/iniwriter
 
 ---
 
+## 💡 Tips for optimizing MX*link*XP in VirtualBox
+
+### ✅ Recommended minimal services
+
+These 14 services are all you need to run Windows XP smoothly inside VirtualBox **without networking**. Still, you retain:
+
+- Audio (e.g., Winamp)  
+- XP-style graphical user interface  
+- Display scaling and clipboard sharing via Guest Additions  
+- PDF printing  
+- Plug and Play functionality
+
+**Keep these services enabled:**
+
+- COM+ Event System  
+- DCOM Server Process Launcher  
+- Remote Procedure Call (RPC)  
+- Security Accounts Manager  
+- Logical Disk Manager  
+- Machine Debug Manager  
+- Plug and Play  
+- Event Log  
+- Themes  
+- Secondary Logon  
+- Workstation  
+- Windows Audio  
+- Windows Driver Foundation – User-mode Driver Framework  
+- VirtualBox Guest Additions Service
+
+---
+
+### ⚙️ How to configure services
+
+🛑 **Before doing anything:**  
+Take a **VirtualBox snapshot** to ensure you can safely revert if something goes wrong.
+
+🔧 Then:
+
+1. Go to **Start → Run → `services.msc`**
+2. Review each listed service
+3. If the **Startup Type** is *Manual* and you don't need the service:
+   - Double-click the service  
+   - Click **Stop** if it's running  
+   - Set **Startup type: Disabled**  
+   - Click **Apply** and **OK**
+4. Leave services set to *Automatic* only if they are part of the list above
+
+This ensures a clean and lean XP experience, free of unnecessary background services.
+
+---
+
+### 🎵 Tip 1: Winamp stuttering?
+
+If Winamp stutters during playback in your VirtualBox XP:
+
+1. Open **Task Manager** (`Ctrl + Shift + Esc`)
+2. Go to the **Processes** tab
+3. Right-click on `winamp.exe`
+4. Select **Set Priority → Realtime**
+5. Ignore Windows’ warning — in this case, it’s safe
+
+💡 Result: Significantly smoother audio playback.  
+Occasional glitches may still happen, but overall it's a big improvement.
+
+✅ **Tested with some news sites** — previously known to cause stuttering due to high ad load. With this change, playback is stable in nearly all cases.
+
+---
+
+### ⚙️ Tip 2: Disable unnecessary manual services
+
+Go through all services marked as **Manual** in `services.msc`, and if you're not using them:
+
+- Stop the service  
+- Set **Startup type: Disabled**  
+- Apply and confirm
+
+This helps ensure no hidden services are running unexpectedly in the background.
+
+---
+
+### 🧠 Tip 3: Enable VT-x / AMD-V
+
+In VirtualBox settings for your XP VM:
+
+- Go to **System → Processor**
+- Ensure **VT-x / AMD-V** is enabled (if supported by your CPU)
+
+This allows the guest system to perform significantly better, especially with multiple CPU cores assigned.
+
+
 ## ❤️ Copyright and Donations
 
 **MX·Link·XP** is free software developed as a personal hobby.
