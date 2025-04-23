@@ -1,0 +1,47 @@
+NAME
+       linux-desktop-maker - Create Linux .desktop launchers for Windows programs via MX·Link·XP
+
+SYNOPSIS
+       linux-desktop-maker.exe
+
+DESCRIPTION
+       linux-desktop-maker is a graphical utility for Windows XP that creates
+       Linux-compatible .desktop launchers for Windows executables. These launchers
+       are used in the MX·Link·XP environment to start Windows programs from a Linux desktop.
+
+       It is part of the MX·Link·XP software package and requires no additional Linux
+       configuration or Wine installation. All linking and launching are handled
+       automatically through XP-side utilities.
+
+USAGE
+       1. Select a drive and folder where the Windows executable (.exe) resides.
+       2. Choose an .exe file from the list.
+       3. The icon is extracted and shown. The application name is determined
+          automatically.
+       4. Click "Make Desktop Shortcut" to:
+            - Create an .ini launcher configuration in \MXP\ (MX·Link·XP Abbreviation: MXP)
+            - Save an icon as .bmp in \MXP\
+            - Generate a .desktop launcher content in the preview window
+       5. You will be prompted to save the .desktop file to any location,
+          including Linux Desktop folder (e.g. /home/user/Desktop).
+
+FILES
+       \MXP\[program].ini
+              Contains launch parameters: exe name, path, system, and autostart flag.
+
+       \MXP\[program].bmp
+              Contains the extracted icon for the program.
+
+       [chosen location]/[program].desktop
+              The Linux launcher file, saved manually via a save dialog.
+
+REQUIREMENTS
+       - Windows XP inside Linux
+       - COMDLG32.OCX installed and registered
+       - Executables and related files accessible from XP
+
+NOTES
+       - All file paths inside the .desktop file are automatically converted to Linux format.
+       - The iniwriter system will interpret the .ini and run the correct Windows program
+         via MX·Link·XP automation.
+

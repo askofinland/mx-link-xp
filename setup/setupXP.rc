@@ -1,0 +1,4 @@
+// setupXP.rc
+#include <windows.h>
+
+1 ICON "setup.ico"

@@ -1,0 +1,31 @@
+!define BLANK ""
+E:\Asiakirjat\Bassit\MXP_koodit\setup\setupXP.obj : E:\Asiakirjat\Bassit\MXP&
+_koodit\setup\setupXP.c .AUTODEPEND
+ @E:
+ cd E:\Asiakirjat\Bassit\MXP_koodit\setup
+ *wcc386 setupXP.c -i="C:\WATCOM/h;C:\WATCOM/h/nt" -w4 -e25 -zq -od -d2 -6r &
+-bt=nt -fo=.obj -mf
+
+E:\Asiakirjat\Bassit\MXP_koodit\setup\setupXP.res : E:\Asiakirjat\Bassit\MXP&
+_koodit\setup\setupXP.rc .AUTODEPEND
+ @E:
+ cd E:\Asiakirjat\Bassit\MXP_koodit\setup
+ *wrc setupXP.rc -bt=nt -dWIN32 -d_WIN32 -d__NT__ -i="$[:;C:\WATCOM/h;C:\WAT&
+COM/h/nt" -q -ad -r -fo=setupXP.res
+
+E:\Asiakirjat\Bassit\MXP_koodit\setup\setupXP.exe : E:\Asiakirjat\Bassit\MXP&
+_koodit\setup\setupXP.obj E:\Asiakirjat\Bassit\MXP_koodit\setup\setupXP.res &
+.AUTODEPEND
+ @E:
+ cd E:\Asiakirjat\Bassit\MXP_koodit\setup
+ @%write setupXP.lk1 FIL setupXP.obj
+ @%append setupXP.lk1 
+!ifneq BLANK ""
+ *wlib -q -n -b setupXP.imp 
+ @%append setupXP.lk1 LIBR setupXP.imp
+!endif
+!ifneq BLANK "setupXP.res"
+ @%append setupXP.lk1 RES setupXP.res
+!endif
+ *wlink name setupXP d all sys nt op m op maxe=25 op q op symf @setupXP.lk1
+

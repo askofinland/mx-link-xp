@@ -1,0 +1,40 @@
+cd E:\home\asko\Asiakirjat\Bassit\MXP_koodit\setup
+wmake -f E:\home\asko\Asiakirjat\Bassit\MXP_koodit\setup\setupXP.mk -h -e
+wcc386 setupXP.c -i="C:\WATCOM/h;C:\WATCOM/h/nt" -w4 -e25 -zq -od -d2 -6r -bt=nt -fo=.obj -mf
+setupXP.c(14): Error! E1058: Cannot use typedef 'DWORD' as a variable
+setupXP.c(14): Error! E1009: Expecting ';' but found 'attrib'
+setupXP.c(14): Error! E1011: Symbol 'attrib' has not been declared
+setupXP.c(53): Error! E1077: Missing '}'
+setupXP.c(41): Warning! W303: Parameter 'nCmdShow' has been defined, but not referenced
+setupXP.c(41): Warning! W303: Parameter 'hPrev' has been defined, but not referenced
+setupXP.c(41): Warning! W303: Parameter 'hInst' has been defined, but not referenced
+setupXP.c(41): Warning! W303: Parameter 'lpCmdLine' has been defined, but not referenced
+setupXP.c(53): Warning! W107: Missing return value for function 'WinMain'
+setupXP.c(54): Error! E1116: An id list not allowed except for function definition
+setupXP.c(54): Warning! W304: Return type 'int' assumed for function 'lstrcpyA'
+setupXP.c(54): Error! E1062: Inconsistent return type for function 'lstrcpyA'
+setupXP.c(54): Note! N2003: source conversion type is 'int'
+setupXP.c(54): Note! N2004: target conversion type is 'char *'
+setupXP.c(54): Note! N2002: 'lstrcpyA' defined in: C:\WATCOM\h\nt\winbase.h(2600)
+setupXP.c(55): Error! E1009: Expecting ')' but found 'setup1.exe'
+setupXP.c(55): Warning! W304: Return type 'int' assumed for function 'PathAppendA'
+setupXP.c(55): Error! E1026: Invalid declarator
+setupXP.c(55): Error! E1009: Expecting ',' but found 'setup1.exe'
+setupXP.c(55): Error! E1026: Invalid declarator
+setupXP.c(55): Error! E1009: Expecting ',' but found ')'
+setupXP.c(55): Error! E1026: Invalid declarator
+setupXP.c(56): Error! E1022: Missing or misspelled data type near 'runNoWait'
+setupXP.c(56): Error! E1116: An id list not allowed except for function definition
+setupXP.c(56): Error! E1024: Declared symbol 'runNoWait' is not in parameter list
+setupXP.c(58): Error! E1026: Invalid declarator
+setupXP.c(58): Error! E1009: Expecting ',' but found 'return'
+setupXP.c(58): Error! E1026: Invalid declarator
+setupXP.c(58): Error! E1009: Expecting ',' but found '0'
+setupXP.c(58): Error! E1026: Invalid declarator
+setupXP.c(59): Error! E1026: Invalid declarator
+setupXP.c(59): Error! E1009: Expecting ',' but found '}'
+setupXP.c(60): Error! E1026: Invalid declarator
+setupXP.c(60): Error! E1009: Expecting '{' but found 'end of file'
+Error(E42): Last command making (E:\home\asko\Asiakirjat\Bassit\MXP_koodit\setup\setupXP.obj) returned a bad status
+Error(E02): Make execution terminated
+Execution complete
