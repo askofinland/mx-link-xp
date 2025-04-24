@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,21 +14,22 @@ int main(int argc, char *argv[]) {
     char buffer[MAX_LINE_LEN];
 
     if (argc < 2) {
-        fprintf(stderr, "Käyttö: %s tiedosto\n", argv[0]);
+        fprintf(stderr, "Usage: %s file\n", argv[0]);
         return 1;
     }
     const char *linux_path = argv[1];
     const char *home_dir = getenv("HOME");
     if (!home_dir) {
-        fprintf(stderr, "HOME-ympäristömuuttuja puuttuu!\n");
+        fprintf(stderr, "HOME environment variable missing!\n");
         return 1;
     }
+
     char aja_ini_path[MAX_LINE_LEN];
     char root[4] = "";
     char xp_path[MAX_LINE_LEN];
     char exe[MAX_LINE_LEN];
     char *relative, *last_slash;
-    int i, j, n;
+    int i, j;
 
     int in_xp = 0, in_aja = 0;
     int aja_start = -1, aja_end = -1;
@@ -35,20 +37,19 @@ int main(int argc, char *argv[]) {
 
     snprintf(aja_ini_path, sizeof(aja_ini_path), "%s/ramdisk/aja.ini", home_dir);
 
-    // Lue tiedosto muistiin
+    // Read aja.ini into memory
     fp = fopen(aja_ini_path, "r");
     if (!fp) {
-        perror("Virhe avaettaessa aja.ini");
+        perror("Failed to open aja.ini");
         return 1;
     }
 
     while (fgets(buffer, sizeof(buffer), fp) && line_count < MAX_LINES) {
-        lines[line_count] = strdup(buffer);
-        line_count++;
+        lines[line_count++] = strdup(buffer);
     }
     fclose(fp);
 
-    // Etsi [XP] ja ROOT=
+    // Find [XP] and ROOT=
     for (i = 0; i < line_count; i++) {
         char *line = lines[i];
         if (strncasecmp(line, "[xp]", 4) == 0) {
@@ -58,7 +59,7 @@ int main(int argc, char *argv[]) {
         } else if (in_xp && strcasestr(line, "root")) {
             char *eq = strchr(line, '=');
             if (eq) {
-                while (*(++eq) == ' ') {} // ohita välilyönnit
+                while (*(++eq) == ' ') {}
                 strncpy(root, eq, 3);
                 root[3] = '\0';
             }
@@ -66,11 +67,11 @@ int main(int argc, char *argv[]) {
     }
 
     if (strlen(root) != 3) {
-        printf("XP root polkua ei löytynyt\n");
+        printf("XP ROOT path not found\n");
         return 1;
     }
 
-    // Etsi [Aja] osio ja sen kentät
+    // Find [Aja] section and keys
     for (i = 0; i < line_count; i++) {
         if (strncasecmp(lines[i], "[Aja]", 5) == 0) {
             aja_start = i;
@@ -97,12 +98,19 @@ int main(int argc, char *argv[]) {
     }
 
     if (aja_start == -1) {
-        printf("[Aja]-osiota ei löytynyt\n");
+        printf("[Aja] section not found\n");
         return 1;
     }
 
-    // Muunna Linux-polku XP-poluksi
-    relative = linux_path[0] == '/' ? (char *)linux_path + 1 : (char *)linux_path;
+    // ************** New logic: HOME-relative XP path ***************
+    if (strncmp(linux_path, home_dir, strlen(home_dir)) == 0) {
+        relative = (char *)linux_path + strlen(home_dir);
+        if (*relative == '/') relative++;
+    } else {
+        fprintf(stderr, "Path is not under $HOME\n");
+        return 1;
+    }
+
     snprintf(xp_path, sizeof(xp_path), "%s%s", root, relative);
     for (i = 0; xp_path[i]; i++) {
         if (xp_path[i] == '/') xp_path[i] = '\\';
@@ -110,13 +118,14 @@ int main(int argc, char *argv[]) {
 
     last_slash = strrchr(xp_path, '\\');
     if (!last_slash) {
-        printf("Virheellinen polku\n");
+        printf("Invalid path\n");
         return 1;
     }
     strcpy(exe, last_slash + 1);
-    *(last_slash + 1) = '\0'; // XP-kansio jää xp_path-muuttujaan
+    *(last_slash + 1) = '\0'; // leave trailing backslash in xp_path
 
-    // Korvaa olemassa olevat rivit
+    // ***************************************************************
+
     if (path_line != -1) {
         snprintf(buffer, sizeof(buffer), "path=%s\r\n", xp_path);
         free(lines[path_line]);
@@ -140,7 +149,6 @@ int main(int argc, char *argv[]) {
         lines[aktivoi_line] = strdup("aktivoi=\r\n");
     }
 
-    // Lisää puuttuvat rivit [Aja]-osion loppuun
     int insert_at = aja_end;
     if (path_line == -1 && line_count < MAX_LINES) {
         snprintf(buffer, sizeof(buffer), "path=%s\r\n", xp_path);
@@ -165,10 +173,9 @@ int main(int argc, char *argv[]) {
         line_count++;
     }
 
-    // Kirjoita tiedosto takaisin
     fp = fopen(aja_ini_path, "w");
     if (!fp) {
-        perror("Virhe kirjoitettaessa aja.ini");
+        perror("Error writing aja.ini");
         return 1;
     }
 
@@ -178,7 +185,8 @@ int main(int argc, char *argv[]) {
     }
 
     fclose(fp);
-    // Nosta XP-ikkuna esiin
+
+    // Focus XP window
     system("wmctrl -a XP");
 
     return 0;

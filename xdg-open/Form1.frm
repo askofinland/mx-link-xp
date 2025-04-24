@@ -129,7 +129,7 @@ If ramdiskdir$ <> "" Then
    End If
 
    If ReadINI("Aja", "start", "", ramdiskdir$ + "\aja.ini") = "false" Or ReadINI("Aja", "start", "", ramdiskdir$ + "\aja.ini") = "" Then
-         WritePrivateProfileString "Aja", "exe", "start.exe /unix /usr/bin/xdg-open " + c$, ramdiskdir$ + "\aja.ini"
+         WritePrivateProfileString "Aja", "exe", "/usr/bin/xdg-open " + Chr$(34) + c$ + Chr$(34), ramdiskdir$ + "\aja.ini"
          WritePrivateProfileString "Aja", "path", "c:\windows\command", ramdiskdir$ + "\aja.ini"
          WritePrivateProfileString "Aja", "start", "true", ramdiskdir$ + "\aja.ini"
          WritePrivateProfileString "Aja", "system", "unix", ramdiskdir$ + "\aja.ini"

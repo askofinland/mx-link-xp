@@ -28,15 +28,12 @@ fi
 
 sudo mount "$RAMDISK_DIR"
 
-# 5. Auto-start ajavahti at boot (basic xprofile method)
-echo "Adding ajavahti to ~/.xprofile for autostart..."
-echo "$BIN_DIR/ajavahti &" >> ~/.xprofile
 
-# 6. Done
+# 5. Done
 echo "✅ Installation complete."
 echo "Ramdisk and ajavahti will start automatically at boot."
 
-# 7. Ask for reboot
+# 6. Ask for reboot
 read -p "Do you want to reboot now? (y/n): " REBOOT
 if [[ "$REBOOT" == "y" || "$REBOOT" == "Y" ]]; then
     sudo reboot
