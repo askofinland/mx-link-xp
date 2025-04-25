@@ -1,40 +1,56 @@
 #!/bin/bash
+cd ..
+echo "=== MX·Link·XP Installer ==="
 
-echo "=== MX·Link·XP Linux-side Installer ==="
+# Ensure we are in the correct project directory
+if [ ! -d "Ajavahti" ] || [ ! -d "Iniwriter" ] || [ ! -d "xpasso" ]; then
+    echo "❌ Error: This script must be run from the project root directory."
+    echo "   Required folders: Ajavahti/, Iniwriter/, xpasso/"
+    exit 1
+fi
 
-# 1. Define BIN_DIR
-BIN_DIR="/usr/local/bin"
+# 1. Copy binary files to /usr/bin
+echo "📁 Copying binaries to /usr/bin..."
 
-# 2. Ask for ramdisk size
-read -p "Enter ramdisk size (default: 512M): " RAMDISK_SIZE
+cd Ajavahti && sudo cp -v ./ajavahti /usr/bin || { echo "❌ Failed to copy ajavahti"; exit 1; }
+cd ../Iniwriter && sudo cp -v ./iniwriter /usr/bin || { echo "❌ Failed to copy iniwriter"; exit 1; }
+cd ../xpasso && sudo cp -v ./xpasso /usr/bin || { echo "❌ Failed to copy xpasso"; exit 1; }
+cd ..
+
+# 2. Ask for RAM disk size
+read -p "💾 Enter RAM disk size (e.g. 512M, default: 512M): " RAMDISK_SIZE
 RAMDISK_SIZE=${RAMDISK_SIZE:-512M}
 
-# 3. Copy binaries
-echo "Copying binaries to $BIN_DIR..."
-sudo cp -v ./Ajavahti/ajavahti "$BIN_DIR/"
-sudo cp -v ./Iniwriter/iniwriter "$BIN_DIR/"
-sudo cp -v ./xpasso/xpasso "$BIN_DIR/"
+# 3. Create the startup script
+STARTUP_SCRIPT="/usr/bin/mxlinkxp.sh"
+RAMDISK_DIR="\$HOME/ramdisk"
 
-# 4. Setup ramdisk
-RAMDISK_DIR="$HOME/ramdisk"
-echo "Creating and mounting ramdisk at $RAMDISK_DIR with size $RAMDISK_SIZE..."
-mkdir -p "$RAMDISK_DIR"
+echo "📝 Creating startup script at $STARTUP_SCRIPT..."
 
-# Check if fstab entry already exists
-if ! grep -q "$RAMDISK_DIR" /etc/fstab; then
-    echo "Adding ramdisk to /etc/fstab..."
-    echo "tmpfs   $RAMDISK_DIR   tmpfs   size=$RAMDISK_SIZE,mode=0755   0 0" | sudo tee -a /etc/fstab
-fi
+sudo tee "$STARTUP_SCRIPT" > /dev/null <<EOF
+#!/bin/bash
+# MX·Link·XP startup script
 
-sudo mount "$RAMDISK_DIR"
+# Create the ramdisk directory in the user's home directory
+mkdir -p $RAMDISK_DIR
 
+# Mount a tmpfs RAM disk with the specified size
+sudo mount -t tmpfs -o size=$RAMDISK_SIZE tmpfs \$HOME/ramdisk
 
-# 5. Done
-echo "✅ Installation complete."
-echo "Ramdisk and ajavahti will start automatically at boot."
+# Start ajavahti in the background
+/usr/bin/ajavahti \$HOME/ramdisk &
 
-# 6. Ask for reboot
-read -p "Do you want to reboot now? (y/n): " REBOOT
-if [[ "$REBOOT" == "y" || "$REBOOT" == "Y" ]]; then
-    sudo reboot
-fi
+# Keep the script alive to prevent background process from stopping
+echo "MX·Link·XP background service is running. Press Ctrl+C to stop."
+while true; do sleep 3600; done
+EOF
+
+# 4. Make the script executable
+sudo chmod +x "$STARTUP_SCRIPT"
+
+# 5. Final info
+echo
+echo "✅ Installation complete!"
+echo "➡️  Run the startup script with: mxlinkxp.sh"
+echo "➡️  This mounts the RAM disk and launches the ajavahti service."
+echo

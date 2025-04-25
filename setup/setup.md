@@ -6,20 +6,16 @@ This guide explains how to set up **MX·Link·XP**, which integrates a Windows X
 
 ## ✅ Step 1: Download and Extract
 
-Download the installation package `MXP.zip` and extract it to:
+Download the installation package `mx-link-xp-1.0.zip` from GitHub Releases.
 
-```
-/home/user/MXP/
-```
-
-> **Important:** Do **not change** the folder names or paths. All applications and scripts expect the directory to be exactly `/home/user/MXP/`.
-
-### 📦 Example (Terminal):
+Unzip it and rename the folder from `mx-link-xp-1.0` to `MXP`, then move it to `/home/user/`.
 
 ```bash
-cd ~
-mkdir -p ~/MXP
-unzip -o ~/Downloads/MXP.zip -d ~/MXP
+unzip ~/Downloads/mx-link-xp-1.0.zip
+mv mx-link-xp-1.0 MXP
+mv MXP ~/  # Now full path is /home/user/MXP
+
+> **Important:** Do **not change** the folder names or paths. All applications and scripts expect the directory to be exactly `/home/user/MXP/`.
 ```
 
 ---
@@ -94,27 +90,51 @@ Z:\  =  /home/user
 
 ## 🐧 Step 5: Install Linux-side Components
 
-Navigate to the MX·Link·XP folder and run:
+Navigate to the MX·Link·XP setup folder and run the installer script:
 
 ```bash
-cd ~/MXP
+cd ~/MXP/setup
 chmod +x install.sh
 ./install.sh
 ```
 
-You will be asked to enter the RAM disk size (default: **512M**).  
-This creates `~/ramdisk` and configures:
+You will be asked to enter the **RAM disk size** (default: `512M`).
 
-- `ajavahti` daemon (starts on boot)
-- `iniwriter` and `xpasso`
-- system integration
-- boot-time setup
+The script performs the following actions:
 
-Afterward:
+- Copies the required binaries:
+  - `ajavahti`, `iniwriter`, and `xpasso` → `/usr/bin`
+- Creates a startup script:  
+  `/usr/bin/mxlinkxp.sh`
+- The startup script:
+  - Mounts a `tmpfs` RAM disk to `~/ramdisk`
+  - Starts `ajavahti` in the background
+  - Stays alive with an infinite sleep loop
+
+You can test the script immediately:
 
 ```bash
-sudo reboot
+mxlinkxp.sh
 ```
+
+To have it launch automatically at login:
+
+🧰 Optional: Use Stacer for autostart  
+If you prefer a graphical tool:
+
+```bash
+sudo apt install stacer
+```
+
+1. Launch **Stacer**  
+2. Go to the **Startup Apps** tab  
+3. Add the following command:
+
+```
+sudo /usr/bin/mxlinkxp.sh
+```
+
+> 💡 Note: Since the script mounts a filesystem, it must be run with `sudo`.
 
 ---
 
