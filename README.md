@@ -115,7 +115,7 @@ but trusts Linux for everything else.
 
 If you'd like to support development:
 
-> **Paypal:** `youremail@example.com`
+> **Paypal:** `askofinland@live.com`
 
 ---
 
