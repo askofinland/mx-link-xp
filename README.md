@@ -108,6 +108,40 @@ A symbolic image of Linux (Tux) walking safely through XP's classic background.
 
 ---
 
+
+---
+
+## 🧰 Included Utilities
+
+MX·Link·XP comes with small helper tools to enhance integration between XP and Linux:
+
+### 📅 Tray Calendar
+A lightweight system tray calendar popup for Windows XP, mimicking LXDE's calendar.
+
+- ✅ Zero CPU usage when idle  
+- ✅ Works offline, no dependencies  
+- 📂 Location: `Z:\MXP\Utils\calendar\calendar.exe`
+
+To install at XP startup:
+> Copy shortcut to Start > All Programs > Startup
+
+🛠️ [View Full README →](MXP/Utils/calendar/README.md)
+
+---
+
+### 🔁 Linstart
+A command-line bridge from XP to Linux. Used to trigger Linux-side actions via shared RAM disk (`aja.ini`).
+
+- ✅ Simple single EXE — no setup  
+- ✅ Enables XP apps to launch Linux apps  
+- 📂 Location: `Z:\MXP\Utils\Linstart\linstart.exe`
+
+Example:
+```cmd
+linstart /usr/bin/thunar
+
+
+
 ## 🙋 Credits & Donations
 
 Made with ❤️ by a nostalgic developer who still enjoys XP —  
@@ -124,5 +158,9 @@ If you'd like to support development:
 > MX·Link·XP is about **freedom**: to reuse what still works,  
 > to skip unnecessary upgrades,  
 > and to stay in control of your digital life.
+
+📖 Read the full [Project Story & Philosophy](Doc/project_story.md)  
+A personal and technical deep dive into why MX·Link·XP exists — and how it empowers XP in a modern Linux world.
+
 
 Long live interoperability. 🐧🪟
