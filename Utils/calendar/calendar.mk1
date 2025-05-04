@@ -1,0 +1,32 @@
+!define BLANK ""
+E:\Asiakirjat\Bassit\MXP\Utils\calendar\calendar.obj : E:\Asiakirjat\Bassit\&
+MXP\Utils\calendar\calendar.c .AUTODEPEND
+ @E:
+ cd E:\Asiakirjat\Bassit\MXP\Utils\calendar
+ *wcc386 calendar.c -i="C:\WATCOM/h;C:\WATCOM/h/nt" -w4 -e25 -zq -od -d2 -6r&
+ -bt=nt -fo=.obj -mf
+
+E:\Asiakirjat\Bassit\MXP\Utils\calendar\calendar.res : E:\Asiakirjat\Bassit\&
+MXP\Utils\calendar\calendar.rc .AUTODEPEND
+ @E:
+ cd E:\Asiakirjat\Bassit\MXP\Utils\calendar
+ *wrc calendar.rc -bt=nt -dWIN32 -d_WIN32 -d__NT__ -i="$[:;C:\WATCOM/h;C:\WA&
+TCOM/h/nt" -q -ad -r -fo=calendar.res
+
+E:\Asiakirjat\Bassit\MXP\Utils\calendar\calendar.exe : E:\Asiakirjat\Bassit\&
+MXP\Utils\calendar\calendar.obj E:\Asiakirjat\Bassit\MXP\Utils\calendar\reso&
+urce.h E:\Asiakirjat\Bassit\MXP\Utils\calendar\calendar.res .AUTODEPEND
+ @E:
+ cd E:\Asiakirjat\Bassit\MXP\Utils\calendar
+ @%write calendar.lk1 FIL calendar.obj
+ @%append calendar.lk1 
+!ifneq BLANK ""
+ *wlib -q -n -b calendar.imp 
+ @%append calendar.lk1 LIBR calendar.imp
+!endif
+!ifneq BLANK "calendar.res"
+ @%append calendar.lk1 RES calendar.res
+!endif
+ *wlink name calendar d all sys nt_win op m op maxe=25 op q op symf @calenda&
+r.lk1
+

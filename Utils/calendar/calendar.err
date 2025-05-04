@@ -1,0 +1,3 @@
+calendar.c(90): Warning! W303: Parameter 'hPrevInstance' has been defined, but not referenced
+calendar.c(90): Warning! W303: Parameter 'nCmdShow' has been defined, but not referenced
+calendar.c(90): Warning! W303: Parameter 'lpCmdLine' has been defined, but not referenced

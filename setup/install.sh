@@ -13,8 +13,14 @@ fi
 echo "📁 Copying binaries to /usr/bin..."
 
 cd Ajavahti && sudo cp -v ./ajavahti /usr/bin || { echo "❌ Failed to copy ajavahti"; exit 1; }
+sudo chmod 755 /usr/bin/ajavahti
+
 cd ../Iniwriter && sudo cp -v ./iniwriter /usr/bin || { echo "❌ Failed to copy iniwriter"; exit 1; }
+sudo chmod 755 /usr/bin/iniwriter
+
 cd ../xpasso && sudo cp -v ./xpasso /usr/bin || { echo "❌ Failed to copy xpasso"; exit 1; }
+sudo chmod 755 /usr/bin/xpasso
+
 cd ..
 
 # 2. Ask for RAM disk size

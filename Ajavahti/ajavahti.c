@@ -227,6 +227,6 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
-    DEBUG("\xf0\x9f\x91\x8b Main process exiting, background watchers active.\n");
+    DEBUG("\xf0\x9f\x91\x8b Main process exiting, background watchers active.ver 1.06\n");
     return 0;
 }

@@ -1,15 +1,17 @@
-# Developer Overview – MX·Link·XP
+# 🛠️ Developer Overview – MX·Link·XP
 
 This document provides an overview of the source code and compiled components in the MX·Link·XP project.
+
+---
 
 ## 🔧 Languages Used
 
 | Language | Purpose                          |
 |----------|----------------------------------|
-| C        | Linux-side daemons and tools     |
+| C        | Linux-side daemons and XP-side console tools |
 | VB6      | Windows XP GUI applications      |
 
-Both types include **source code** and **precompiled binaries** within each application directory.
+All components include both **source code** and **precompiled binaries** in their respective directories.
 
 ---
 
@@ -17,65 +19,104 @@ Both types include **source code** and **precompiled binaries** within each appl
 
 | Directory     | Platform | Language | Description |
 |---------------|----------|----------|-------------|
-| `Ajavahti/`   | Linux    | C        | Main communication daemon. Watches `aja.ini` and `.pdf` files. |
-| `Iniwriter/`  | Linux    | C        | Updates key-value pairs in `aja.ini`. |
-| `xpasso/`     | Linux    | C        | Writes commands to `aja.ini` to be executed on XP. |
-| `xpserv/`     | XP       | VB6      | Autostarts with XP. Handles Linux communication. |
-| `setup/`      | XP       | VB6 + Bash | Contains `setup1.exe` and `install.sh`. |
-| `Thunar/`     | XP       | VB6      | File manager shortcut to Linux's file system. |
-| `terminaali/` | XP       | VB6      | Opens Linux terminal from XP. |
-| `Firefox/`    | XP       | VB6      | Launches Firefox and sets it as the default browser. |
-| `thunderbird/`| XP       | VB6      | Launches Thunderbird and sets it as the default mail client. |
-| `GoogleChrome/`| XP     | VB6      | Optional Chrome shortcut to Linux. |
-| `Cromium/`    | XP       | VB6      | Chromium taskbar shortcut. |
-| `vlc/`        | XP       | VB6      | File association with VLC. |
-| `xdg-open/`   | XP       | VB6      | XP side launcher to redirect open actions to Linux. |
-| `Utils/Desktop maker/` | XP | VB6 | Tool to create shortcuts on XP desktop. |
-| `Utils/`      | XP       | Mixed    | Contains CuteWriter installer and OCX dependencies. |
+| `Ajavahti/`   | Linux    | C        | Main communication daemon. Watches `aja.ini` and `.pdf` files and launches Linux-side commands. |
+| `Iniwriter/`  | Linux    | C        | Command-line tool to modify `aja.ini` values in a safe and scriptable way. |
+| `xpasso/`     | Linux    | C        | Injects Linux-to-XP execution requests into `aja.ini`. |
+| `xpserv/`     | XP       | VB6      | Resident XP-side background app. Reads `aja.ini` and executes Windows-side actions requested by Linux. Also writes `[XP] ROOT=` path. |
+| `linstart/`   | XP       | C        | Lightweight XP console tool that writes Linux-side commands into `aja.ini`. Used by VB6 launchers. |
+| `Utils/calendar/` | XP   | C        | Adds a calendar popup to the XP system tray, imitating LXDE clock behavior. Includes full tray icon and UI logic. |
+| `setup/`      | XP       | VB6 + Bash | Contains `setup1.exe` (VB6) and `install.sh` (Linux). Prepares the environment. |
+| `Thunar/`     | XP       | VB6      | File manager shortcut (launches `/usr/bin/thunar` via `linstart`). |
+| `terminaali/` | XP       | VB6      | Opens LXTerminal or similar shell through Linux. |
+| `Firefox/`    | XP       | VB6      | Firefox Linux-side launcher and default browser setter for XP. |
+| `thunderbird/`| XP       | VB6      | Thunderbird launcher, works similarly to Firefox entry. |
+| `GoogleChrome/`| XP     | VB6      | Chrome-specific launcher (optional). |
+| `Cromium/`    | XP       | VB6      | Chromium shortcut for XP panel or desktop. |
+| `vlc/`        | XP       | VB6      | Video/audio file association handler for VLC. |
+| `xdg-open/`   | XP       | VB6      | Redirects XP file open requests to Linux. |
+| `Utils/Desktop maker/` | XP | VB6 | Tool to build .lnk launchers from ini-configured logic. |
+| `Utils/`      | XP       | Mixed    | Contains additional tools: CuteWriter installer, shared OCX controls. |
+
+---
+
+## 🔍 Notable Components
+
+### 🖥️ `linstart.exe` (XP, C)
+
+- A command-line program used by VB6 launchers.
+- Finds the correct drive where `\MXP\` resides.
+- Writes a Linux execution request into `Z:\ramdisk\aja.ini`.
+- Simple, fast, and compatible with all XP configurations.
+
+### 🕑 `calendar.exe` (XP, C)
+
+- Mimics LXDE's calendar popup behavior in the XP system tray.
+- Uses `MONTHCAL_CLASS` from Windows Common Controls.
+- Starts hidden, responds to tray icon clicks.
+- Ideal for minimal desktop setups.
 
 ---
 
 ## 📄 Additional Notes
 
-- All compiled executables are included alongside their source code.
-- C programs are written for portability and performance on lightweight Linux systems.
-- VB6 programs are designed to run under Windows XP only (no Wine compatibility required).
-- The root directory contains the image `Tux walk on the bliss (square).png`, which is the project's official logo.
+- All compiled executables are included with their full source.
+- C programs use Win32 or POSIX APIs with minimal dependencies.
+- VB6 programs target native XP systems — **no Wine required or supported**.
+- File paths and drive assumptions are baked into launch logic. Do **not rename folders**.
 
 ---
 
-## 📚 Where to find more?
+## 📁 Filesystem Mapping
 
-Each directory may include a more detailed `README.dev.md` with function-level documentation and build instructions.
+| Linux Path             | XP Equivalent         | Notes                          |
+|------------------------|------------------------|--------------------------------|
+| `/home/user/`          | `Z:\`                  | Main mount point               |
+| `/home/user/MXP/`      | `Z:\MXP\`              | System files and launchers     |
+| `/home/user/ramdisk/`  | `Z:\ramdisk\`          | Runtime communication files    |
 
-```bash
-tree -f -I '*.exe|*.ico|*.frx|*.vbw|*.log|*.sym|*.map|*.mk*|*.rc|*.wpj|*.tgt|*.obj|*.PDM'
+---
+
+## 📷 Visual Aid
+
+- Logo file `Tux walk on the bliss (square).png` represents the spirit of the project — Linux (Tux) walking across Windows XP's iconic landscape.
+
+---
 
 ## ✍️ Developer's Statement
 
 > All Windows XP-side applications in this project are written in **Visual Basic 6**.
 >
-> The reason is simple:
+> Why? Because:
 >
-> - The **VB6 IDE is familiar, fast, and highly efficient** for quick development and debugging.
-> - It's a practical match for Windows XP, where the VB6 runtime is already present.
-> - For this project's scope, **speed of iteration and maintainability** mattered more than modern language trends.
+> - The VB6 IDE is **fast, direct, and stable** — perfect for XP
+> - The runtime is **already present** in XP
+> - Code is **debuggable, visual, and easy to extend**
 >
-> 🛠️ That said, **if someone with strong C skills** wishes to rewrite these in C for performance or portability —  
-> the original developer would **gladly welcome it (and cheer quietly from the shadows)**.
+> That said, if you prefer C or another language — go for it.  
+> All core logic is modular and easy to reimplement.
 
 ---
 
-## 📝 Additional Notes
+## ⚠️ Coding Guidelines
 
-- All binaries are **self-contained** and expect supporting files to follow the defined directory layout.
-- **Do not change the folder names or structure.** They are hardcoded into launch logic.
-- The Linux-side `ajavahti` uses `aja.ini` as a central communication channel.
-- All paths use `Z:\` on XP to reference `/home/user/` on the Linux side.
+- XP-side code assumes VB6 runtime and Win32 API behavior
+- Linux-side code avoids elevated permissions and uses standard C
+- Always test path logic and `aja.ini` behavior with realistic setups
 
 ---
 
 ## 📫 Contributions
 
-Feel free to fork the repository, improve C code, or reimplement XP parts with modern tools — as long as **compatibility with XP and Linux integration remains intact**.
+You’re welcome to:
+- Reimplement any VB6 launcher in C or another language
+- Improve the daemon logic on Linux
+- Suggest INI schema improvements or add support for async signaling
 
+Just remember:  
+**XP compatibility is sacred. Linux compatibility is essential. Wine is irrelevant.**
+
+```bash
+git clone [your fork here]
+cd MXP
+# hack away!
+```

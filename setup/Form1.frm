@@ -188,54 +188,45 @@ Function HaeOhjelmavalikko() As String
         HaeOhjelmavalikko = ""
     End If
 End Function
-Private Sub KopioiK‰ynnistykseen()
-    On Error Resume Next
-    Dim polku As String
-    polku = Space$(MAX_PATH)
+Private Sub Command1_Click()
+    Command1.Enabled = False
 
-    If SHGetSpecialFolderPath(0, polku, CSIDL_COMMON_STARTUP, False) Then
-        polku = Left$(polku, InStr(polku, vbNullChar) - 1)
+    ' Kopioidaan xpserv.exe yhteiseen k‰ynnistyskansioon
+    Dim startupFolder As String
+    Dim l‰hde As String, kohde As String
+    startupFolder = Space$(MAX_PATH)
 
-        Dim l‰hde As String
-        Dim kohde As String
+    If SHGetSpecialFolderPath(0, startupFolder, CSIDL_COMMON_STARTUP, False) Then
+        startupFolder = Left$(startupFolder, InStr(startupFolder, vbNullChar) - 1)
 
         l‰hde = asennusmaindir & "\xpserv\xpserv.exe"
-        kohde = polku & "\xpserv.exe"
-Err = 0
-        ' Halutessasi ylikirjoituksen esto:
+        kohde = startupFolder & "\xpserv.exe"
+
+        On Error Resume Next
         If Dir(kohde) <> "" Then Kill kohde
         If Err = 75 Then
             MsgBox "XP Serv is currently running. Please close it before continuing the installation.", vbExclamation, "Warning"
             asennusmode% = asennusmode% - 1
- 
             Exit Sub
-         End If
+        End If
         FileCopy l‰hde, kohde
     Else
-        MsgBox "The startup folder could not be found.", vbExclamation
+        MsgBox "The startup folder could not be found.", vbExclamation, "Error"
         asennusmode% = asennusmode% - 1
     End If
-End Sub
-
-
-
-Private Sub Command1_Click()
-    Command1.Enabled = False
-    KopioiK‰ynnistykseen
 
     Dim kohdeKansio As String
-    Dim l‰hde As String, kohde As String
     Dim windowsDir As String
     Dim ohjelmavalikko As String
 
     ' Selvitet‰‰n Windows-hakemisto
     windowsDir = Environ$("WINDIR")
     If Right$(windowsDir, 1) <> "\" Then windowsDir = windowsDir & "\"
-    
+
     ' Selvitet‰‰n Programs-valikko
     ohjelmavalikko = HaeOhjelmavalikko()
     If Right$(ohjelmavalikko, 1) <> "\" Then ohjelmavalikko = ohjelmavalikko & "\"
-    
+
     ' Pikakuvakkeiden luonti
     On Error Resume Next
 
@@ -267,7 +258,7 @@ Private Sub Command1_Click()
         Dim vlcTargetExe As String
 
         vlcInstaller = asennusmaindir & "\vlc\vlc-2.0.2-win32.exe"
-        vlcSourceExe = asennusmaindir & "\vlc\vlc.exe"
+        vlcSourceExe = asennusmaindir & "\vlc\Vlc.exe"
         vlcTargetExe = Environ$("ProgramFiles") & "\VideoLAN\VLC\vlc.exe"
 
         Shell vlcInstaller, vbNormalFocus
@@ -282,24 +273,20 @@ Private Sub Command1_Click()
         End If
     End If
 
-    ' Check1(5): Chromium
+    ' Chromium
     If Check1(5).Value = 1 Then
         l‰hde = asennusmaindir & "\Cromium\Chromium.exe"
         kohde = ohjelmavalikko & "Chromium.exe"
         FileCopy l‰hde, kohde
-        Check1(6).Enabled = False
+        Check1(5).Enabled = False
     End If
 
-    ' Check1(6): CuteWriter PDF tulostin
+    ' CuteWriter PDF tulostin
     If Check1(6).Value = 1 Then
         Shell Chr$(34) & asennusmaindir & "\Utils\CuteWriter30.exe" & Chr$(34), vbNormalFocus
         MsgBox "Complete the CuteWriter installation and press OK to continue.", vbInformation, "CuteWriter"
-        Check1(7).Enabled = False
+        Check1(6).Enabled = False
     End If
-
-
-
-
 
     ' Thunderbird
     MsgBox "Thunderbird will now start." & vbCrLf & _
@@ -346,22 +333,17 @@ Private Sub Command1_Click()
 
     If Dir(deskKohdeDir, vbDirectory) = "" Then MkDir deskKohdeDir
     FileCopy deskL‰hde, deskKohdeExe
-    
-' ocx
-Dim ocxL‰hde As String
-Dim ocxKohde As String
 
-ocxL‰hde = asennusmaindir & "\Utils\Desktop maker\COMDLG32.OCX"
-ocxKohde = Environ$("SystemRoot") & "\System32\COMDLG32.OCX"
+    ' OCX-komponentti
+    Dim ocxL‰hde As String
+    Dim ocxKohde As String
 
-On Error Resume Next
-FileCopy ocxL‰hde, ocxKohde
+    ocxL‰hde = asennusmaindir & "\Utils\Desktop maker\COMDLG32.OCX"
+    ocxKohde = Environ$("SystemRoot") & "\System32\COMDLG32.OCX"
 
+    On Error Resume Next
+    FileCopy ocxL‰hde, ocxKohde
 
-'*****
-    
-    
-    
     If Dir(deskKohdeExe) <> "" And Dir(ocxKohde) <> "" Then
         MsgBox "Desktop Maker will now start. Use it to create a shortcut for itself on the desktop. After that, you can use it to make shortcuts for other programs.", vbInformation, "Desktop Shortcut"
         Shell deskKohdeExe, vbNormalFocus
@@ -373,7 +355,7 @@ FileCopy ocxL‰hde, ocxKohde
     l‰hde = asennusmaindir & "\xdg-open\xdg-open.exe"
     kohde = windowsDir & "xdg-open.exe"
     FileCopy l‰hde, kohde
-    
+
     Command1.Enabled = True
     MsgBox "XP-side installation is now complete." & vbCrLf & _
        "You may now start using MX∑Link∑XP.", vbInformation, "Installation Complete"
