@@ -1,15 +1,18 @@
 VERSION 5.00
 Begin VB.Form Form1 
+   BorderStyle     =   3  'Fixed Dialog
    Caption         =   "MXP server"
    ClientHeight    =   1800
-   ClientLeft      =   48
-   ClientTop       =   432
+   ClientLeft      =   36
+   ClientTop       =   420
    ClientWidth     =   2940
    Icon            =   "Form1.frx":0000
    LinkTopic       =   "Form1"
+   MaxButton       =   0   'False
+   MinButton       =   0   'False
    ScaleHeight     =   1800
    ScaleWidth      =   2940
-   StartUpPosition =   3  'Windows Default
+   ShowInTaskbar   =   0   'False
    Visible         =   0   'False
    Begin VB.DirListBox homedirri 
       Height          =   504
@@ -19,7 +22,7 @@ Begin VB.Form Form1
       Width           =   1092
    End
    Begin VB.Timer Timer1 
-      Interval        =   990
+      Interval        =   500
       Left            =   360
       Top             =   120
    End
@@ -31,6 +34,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 Dim startdir$
+Dim oldikkuna$
       Private Const MAX_PATH = 260
 
 
@@ -189,6 +193,7 @@ Dim temppiexe As String
 Dim temppipath As String
 Dim temppiaktivoi As String
 Dim f%
+Dim ikkuna$
 
 If startdir$ <> "" Then
       If ReadINI("Aja", "system", "", startdir$ + "\aja.ini") = "xp" And ReadINI("Aja", "start", "", startdir$ + "\aja.ini") = "true" Then

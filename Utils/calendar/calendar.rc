@@ -1,0 +1,4 @@
+// calendar.rc
+#include "resource.h"
+
+IDI_TRAYICON ICON "calendar.ico"

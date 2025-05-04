@@ -1,106 +1,115 @@
-# 🔗 MX·Link·XP – Integration Architecture
+# 📁 MX·Link·XP Directory Structure and Logic
 
-This document explains the architecture of **MX·Link·XP**, focusing on how the Linux and Windows XP systems interact and how tasks are delegated between them for maximum efficiency and stability.
-
----
-
-## 🧠 Core Design Philosophy
-
-MX·Link·XP is not just an installer — it's a **bidirectional integration layer** between a modern Linux desktop and a legacy Windows XP environment. It allows the user to **run tasks where they perform best**:
-
-- Legacy Win32 applications → XP (e.g., Winamp, Excel 2003)
-- Browsing, printing, file management → Linux
-
-The integration is designed to be:
-- ⚡ **Fast**: Minimal latency in execution
-- 💾 **Lightweight**: Runs on low-end hardware
-- 🔐 **Safe**: XP is offline-only, without any networking enabled
+MX·Link·XP is built on a predictable and controlled directory layout that bridges a Linux host and a Windows XP guest through a shared folder. Understanding these locations is essential for both operation and maintenance.
 
 ---
 
-## 🗂️ File Exchange
+## 📂 `/home/user` (Linux side)
 
-All data exchange occurs via a shared RAM disk mounted as:
+This is the **Linux user’s home directory**. It is exported (e.g. via VirtualBox shared folder) to the XP guest system and **appears in XP as a mapped drive**, typically:
 
-- **Linux**: `/home/user/ramdisk/`
-- **Windows XP**: `Z:\ramdisk\`
+```
+Z:\
+```
 
-Windows XP sees the Linux home directory as a mapped drive (e.g., `Z:\`),  
-**where `Z:` is the default assigned by VirtualBox** — but it may be different on your system.  
-You can confirm the correct drive letter inside XP's Explorer under “My Computer”.
-
-The **`aja.ini`** file inside this disk acts as the **central communication channel** between systems.
+However, **the drive letter is not fixed** — the system detects the correct drive by scanning from `A:` to `Z:` for a specific marker folder (`MXP\`).
 
 ---
 
-## 🔄 Communication Flow
+## 📂 `/home/user/MXP` → `Z:\MXP\` (XP sees this)
 
-### 1. XP → Linux
+### ✅ Purpose:
+- Main system folder
+- Contains all MX·Link·XP binaries, VB6 applications, helper tools, icons, etc.
+- Acts as a **marker (flag)**: its presence determines that the user is valid and MX·Link·XP is active on this machine.
 
-XP applications (like file shortcuts or PDF printer) write structured commands into `Z:\ramdisk\aja.ini`.
+### 🔐 Rule:
+- **Only one MXP folder is allowed per machine.**
+- That means: **only one user account** can be active in the system at once.
 
-Linux reads `aja.ini` and acts accordingly:
-
-- Launch Linux applications
-- Print PDFs via native `lp` system
-- Raise windows (`wmctrl -a`)
-
-Linux then clears the `start=true` flag to signal completion.
-
-### 2. Linux → XP
-
-Linux programs (like `xpasso`) can write XP-related instructions into `aja.ini`, such as launching `.exe` binaries on XP. The running `xpserv.exe` detects changes and launches the requested program.
+This ensures deterministic behavior across all command-line tools (e.g., `linstart`, `xpserv`, `xpasso`) and GUI components.
 
 ---
 
-## 🧩 Components by Role
+## 📂 `/home/user/ramdisk` → `Z:\ramdisk\` (XP sees this)
 
-| Role                    | Component             | Platform |
-|-------------------------|-----------------------|----------|
-| Central dispatcher      | `ajavahti`            | Linux    |
-| INI updater             | `iniwriter`           | Linux    |
-| XP launcher interface   | `xpasso`              | Linux    |
-| INI monitor             | `xpserv.exe`          | Windows XP |
-| Shortcut creator        | `Desktop maker.exe`   | Windows XP |
-| XP installer            | `setup1.exe`          | Windows XP |
-| Startup binder          | `install.sh`          | Linux    |
+### ✅ Purpose:
+- **Temporary runtime state folder**
+- Contains:
+  - `aja.ini` — the central control file for inter-OS communication
+  - Possible temporary files during command handling or feedback
+
+This folder is **volatile** — it is cleared on reboot or session change. It must be present and writable by both Linux and XP processes.
 
 ---
 
-## 🖥️ Filesystem Integration
+## 📄 `aja.ini`
 
-Windows XP accesses Linux's `/home/user` as drive **Z:\\** via VirtualBox Shared Folders.  
-This includes the RAM disk path: `Z:\ramdisk\`.
+Placed inside the **ramdisk**, this file is the **shared state interface** between XP and Linux:
 
-- File opens, saves, and references work seamlessly across systems
-
----
-
-## 🖨️ Printing Architecture
-
-- PDF print jobs from XP (CuteWriter) are directed to `Z:\ramdisk\`
-- Linux `ajavahti` daemon detects `.pdf` files
-- Sends them to `lp` for native printing
-- Deletes the file once successfully printed
+- XP writes to it (e.g., via `linstart.exe`)
+- Linux monitors it (via `ajavahti`)
+- Only one command can be active at a time (`start=true`)
+- Acts as a simple IPC (inter-process communication) mechanism — safe, text-based, inspectable
 
 ---
 
-## 🔐 Security Architecture
+## 📍 XP Drive Letter Detection
 
-- **XP is fully offline**
-  - Network card is disconnected
-  - All network-related services are disabled
-- **System integrity**
-  - No registry cleaners or service installers
-  - Minimalist install = maximal reliability
-- **Snapshots**
-  - Use VirtualBox snapshots to restore system state instantly
+Because **Linux has no way to know which drive letter XP uses** for the shared folder (`/home/user` → e.g. `Z:\`), the XP-side program `xpserv.exe` scans for the correct drive and reports it back to Linux.
+
+It writes the result to the shared control file `aja.ini`:
+
+```ini
+[XP]
+ROOT=E:\
+```
+
+This field tells Linux that:
+```
+/home/user = E:\
+/home/user/MXP = E:\MXP\
+/home/user/ramdisk = E:\ramdisk\
+```
+
+This is critical for any Linux-side tool (`ajavahti`, `xpasso`, etc.) that needs to write back to the XP file system, e.g., when returning results or activating desktop elements.
+
+---
+## 🧠 Example Workflow
+
+**User action (in XP):**
+```cmd
+linstart /usr/bin/thunar
+```
+
+**What happens:**
+1. `linstart.exe` searches from A:\ to Z:\ until it finds `MXP\`
+2. Finds e.g. `Z:\MXP\` → sets `startdir = Z:\ramdisk\`
+3. Checks if `Z:\ramdisk\aja.ini` exists
+4. If `[Aja] start=false` or missing:
+    - Writes:
+      ```
+      [Aja]
+      exe=/usr/bin/thunar
+      path=c:\windows\command (not used when system=unix)
+      start=true
+      system=unix
+      aktivoi=
+      ```
+5. On Linux, `ajavahti` sees the updated `aja.ini`, reads the fields, and runs `/usr/bin/thunar`
+6. Linux clears or resets `start=false` after execution
 
 ---
 
-## 📌 Summary
+## 🔁 Summary of Directory Roles
 
-MX·Link·XP connects a lightweight, secure XP environment with the power of Linux through a **RAM-based message queue** (`aja.ini`), shared folders, and minimal background services.
+| Path                       | XP sees as       | Role                              |
+|----------------------------|------------------|-----------------------------------|
+| `/home/user/MXP`          | `Z:\MXP\`        | Main system folder (binaries etc.)|
+| `/home/user/ramdisk`      | `Z:\ramdisk\`    | Temporary state (aja.ini etc.)    |
+| (Any drive with MXP found)| `(can be X:\)`   | Detected dynamically              |
 
-> 🧠 Efficiency by design: XP is stable, fast, and limited to what it does best —  
-> Linux handles everything modern and secure.
+---
+
+This structure ensures a clear, robust, and offline-safe method for communication between XP and Linux.
+
