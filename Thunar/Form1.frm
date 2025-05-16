@@ -108,7 +108,8 @@ If startdir$ <> "" Then
          WritePrivateProfileString "Aja", "path", "c:\windows\command", startdir$ + "\aja.ini"
          WritePrivateProfileString "Aja", "start", "true", startdir$ + "\aja.ini"
          WritePrivateProfileString "Aja", "system", "unix", startdir$ + "\aja.ini"
-         WritePrivateProfileString "Aja", "", "Thunar", startdir$ + "\aja.ini"
+         WritePrivateProfileString "Aja", "aktivoi", "", startdir$ + "\aja.ini"
+
     End If
 End If
 End

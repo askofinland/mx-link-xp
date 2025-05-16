@@ -2,7 +2,7 @@ VERSION 5.00
 Begin VB.Form Form1 
    BackColor       =   &H00C0FFFF&
    Caption         =   "MX∑link∑XP Setup"
-   ClientHeight    =   4584
+   ClientHeight    =   6420
    ClientLeft      =   48
    ClientTop       =   432
    ClientWidth     =   6792
@@ -16,10 +16,27 @@ Begin VB.Form Form1
       Strikethrough   =   0   'False
    EndProperty
    LinkTopic       =   "Form1"
-   ScaleHeight     =   382
+   ScaleHeight     =   535
    ScaleMode       =   3  'Pixel
    ScaleWidth      =   566
    StartUpPosition =   3  'Windows Default
+   Begin VB.CommandButton Command2 
+      Caption         =   "Install Thunderbird"
+      BeginProperty Font 
+         Name            =   "MS Sans Serif"
+         Size            =   9.6
+         Charset         =   0
+         Weight          =   700
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      Height          =   492
+      Left            =   120
+      TabIndex        =   10
+      Top             =   1560
+      Width           =   2772
+   End
    Begin VB.Frame Frame2 
       BackColor       =   &H00C0FFFF&
       Caption         =   " Please select the programs you want to install "
@@ -32,18 +49,46 @@ Begin VB.Form Form1
          Italic          =   0   'False
          Strikethrough   =   0   'False
       EndProperty
-      Height          =   2532
+      Height          =   3492
       Left            =   120
       TabIndex        =   3
-      Top             =   1080
+      Top             =   2760
       Width           =   6612
+      Begin VB.CheckBox Check1 
+         BackColor       =   &H00C0FFFF&
+         Caption         =   "Install Calendar Utility"
+         Height          =   252
+         Index           =   4
+         Left            =   240
+         TabIndex        =   12
+         Top             =   2520
+         Value           =   1  'Checked
+         Width           =   5772
+      End
+      Begin VB.CommandButton Command4 
+         Caption         =   "Install Server and Utilities"
+         BeginProperty Font 
+            Name            =   "MS Sans Serif"
+            Size            =   9.6
+            Charset         =   0
+            Weight          =   700
+            Underline       =   0   'False
+            Italic          =   0   'False
+            Strikethrough   =   0   'False
+         EndProperty
+         Height          =   492
+         Left            =   1560
+         TabIndex        =   11
+         Top             =   2880
+         Width           =   3492
+      End
       Begin VB.CheckBox Check1 
          BackColor       =   &H00C0FFFF&
          Caption         =   "CuteWriter PDF printer install"
          Height          =   252
          Index           =   6
          Left            =   240
-         TabIndex        =   10
+         TabIndex        =   9
          Top             =   2160
          Value           =   1  'Checked
          Width           =   5772
@@ -54,21 +99,10 @@ Begin VB.Form Form1
          Height          =   252
          Index           =   5
          Left            =   240
-         TabIndex        =   9
+         TabIndex        =   8
          Top             =   1800
          Value           =   1  'Checked
          Width           =   5772
-      End
-      Begin VB.CheckBox Check1 
-         BackColor       =   &H00C0FFFF&
-         Caption         =   "XP Home - Shortcut for Linux home folder"
-         Height          =   252
-         Index           =   4
-         Left            =   240
-         TabIndex        =   8
-         Top             =   3120
-         Width           =   5772
-         Visible         =   0   'False
       End
       Begin VB.CheckBox Check1 
          BackColor       =   &H00C0FFFF&
@@ -105,7 +139,7 @@ Begin VB.Form Form1
       End
       Begin VB.CheckBox Check1 
          BackColor       =   &H00C0FFFF&
-         Caption         =   "VLC File association handler "
+         Caption         =   "MXlinkXP Media Player"
          Height          =   252
          Index           =   1
          Left            =   240
@@ -116,7 +150,7 @@ Begin VB.Form Form1
       End
    End
    Begin VB.CommandButton Command1 
-      Caption         =   "Next"
+      Caption         =   "Install Firefox"
       BeginProperty Font 
          Name            =   "MS Sans Serif"
          Size            =   9.6
@@ -127,10 +161,10 @@ Begin VB.Form Form1
          Strikethrough   =   0   'False
       EndProperty
       Height          =   492
-      Left            =   5040
+      Left            =   120
       TabIndex        =   2
-      Top             =   3960
-      Width           =   1572
+      Top             =   960
+      Width           =   2772
    End
    Begin VB.Frame Frame1 
       BackColor       =   &H00C0FFFF&
@@ -178,6 +212,19 @@ Private Declare Function SHGetSpecialFolderPath Lib "shell32.dll" Alias "SHGetSp
 Private Const MAX_PATH = 260
 Private Const CSIDL_COMMON_PROGRAMS = &H17  ' T‰m‰ on t‰rkein kohta
 
+Private Sub CopyWithCheck(ByVal src As String, ByVal dst As String, ByVal name As String)
+    On Error Resume Next
+    If Dir(src) = "" Then
+        MsgBox name & " not found: " & src, vbExclamation
+        Exit Sub
+    End If
+    If Dir(dst) <> "" Then Kill dst
+    FileCopy src, dst
+    If Err.Number <> 0 Then
+        MsgBox "Failed to install " & name & ".", vbExclamation
+    End If
+End Sub
+
 Function HaeOhjelmavalikko() As String
     Dim polku As String
     polku = Space$(MAX_PATH)
@@ -188,177 +235,165 @@ Function HaeOhjelmavalikko() As String
         HaeOhjelmavalikko = ""
     End If
 End Function
+
 Private Sub Command1_Click()
     Command1.Enabled = False
+    Shell Chr$(34) & asennusmaindir & "\Firefox\Firefox Setup 40.0.exe" & Chr$(34), vbNormalFocus
 
-    ' Kopioidaan xpserv.exe yhteiseen k‰ynnistyskansioon
-    Dim startupFolder As String
-    Dim l‰hde As String, kohde As String
-    startupFolder = Space$(MAX_PATH)
+End Sub
 
-    If SHGetSpecialFolderPath(0, startupFolder, CSIDL_COMMON_STARTUP, False) Then
-        startupFolder = Left$(startupFolder, InStr(startupFolder, vbNullChar) - 1)
+Private Sub Command2_Click()
+    Command2.Enabled = False
+    Shell Chr$(34) & asennusmaindir & "\thunderbird\Thunderbird Setup 1.5.0.14.exe" & Chr$(34), vbNormalFocus
 
-        l‰hde = asennusmaindir & "\xpserv\xpserv.exe"
-        kohde = startupFolder & "\xpserv.exe"
+End Sub
 
-        On Error Resume Next
-        If Dir(kohde) <> "" Then Kill kohde
-        If Err = 75 Then
-            MsgBox "XP Serv is currently running. Please close it before continuing the installation.", vbExclamation, "Warning"
-            asennusmode% = asennusmode% - 1
-            Exit Sub
-        End If
-        FileCopy l‰hde, kohde
-    Else
-        MsgBox "The startup folder could not be found.", vbExclamation, "Error"
-        asennusmode% = asennusmode% - 1
+
+Private Sub Command3_Click()
+
+End Sub
+
+
+Private Sub Command4_Click()
+    Dim eifirefoxia As Integer
+    Dim eithunderia As Integer
+    eifirefoxia = 0
+    eithunderia = 0
+
+    Dim firefoxPath As String, thunderbirdPath As String
+    firefoxPath = Environ$("ProgramFiles") & "\Mozilla Firefox\firefox.exe"
+    thunderbirdPath = Environ$("ProgramFiles") & "\Mozilla Thunderbird\thunderbird.exe"
+
+    ' Tarkistetaan, onko ohjelmat asennettu
+    If Dir(firefoxPath) = "" Then
+        MsgBox "Firefox is not installed. Please install it first before continuing.", vbExclamation, "Missing Firefox"
+        eifirefoxia = 1
     End If
 
-    Dim kohdeKansio As String
-    Dim windowsDir As String
+    If Dir(thunderbirdPath) = "" Then
+        MsgBox "Thunderbird is not installed. Please install it first before continuing.", vbExclamation, "Missing Thunderbird"
+        eithunderia = 1
+    End If
+
     Dim ohjelmavalikko As String
-
-    ' Selvitet‰‰n Windows-hakemisto
-    windowsDir = Environ$("WINDIR")
-    If Right$(windowsDir, 1) <> "\" Then windowsDir = windowsDir & "\"
-
-    ' Selvitet‰‰n Programs-valikko
+    Dim l‰hde As String, kohde As String
     ohjelmavalikko = HaeOhjelmavalikko()
     If Right$(ohjelmavalikko, 1) <> "\" Then ohjelmavalikko = ohjelmavalikko & "\"
 
-    ' Pikakuvakkeiden luonti
-    On Error Resume Next
+    ' MXlinkXP Media Player
+    If Check1(1).Value = 1 Then
+        l‰hde = asennusmaindir & "\MediaPlayer\MXXPlayer.exe"
+        kohde = ohjelmavalikko & "MXlinkXP Media Player.exe"
+        CopyWithCheck l‰hde, kohde, "MXlinkXP Media Player"
 
+        ' Tiedostoassosiaatiot
+        Dim tiedostop‰‰tteet As Variant
+        Dim p‰‰te As Variant
+        tiedostop‰‰tteet = Array(".mp4", ".mp3", ".avi", ".mkv", ".flac", ".wav", ".ogg", ".mov")
+
+        For Each p‰‰te In tiedostop‰‰tteet
+            CreateObject("WScript.Shell").RegWrite _
+                "HKCR\" & p‰‰te & "\", "MXXPlayer.File", "REG_SZ"
+        Next
+
+        ' Luo MXXPlayer.File-tyyppi
+        Dim regBase As String
+        regBase = "HKCR\MXXPlayer.File\"
+
+        With CreateObject("WScript.Shell")
+            .RegWrite regBase, "MXlinkXP Media File", "REG_SZ"
+            .RegWrite regBase & "DefaultIcon\", Chr(34) & kohde & Chr(34) & ",0", "REG_SZ"
+            .RegWrite regBase & "shell\open\command\", Chr(34) & kohde & Chr(34) & " %1", "REG_SZ"
+        End With
+    End If
+
+    ' Custom Firefox binary copy
+    If eifirefoxia = 0 Then
+        l‰hde = asennusmaindir & "\Firefox\Firefox.exe"
+        kohde = firefoxPath
+        CopyWithCheck l‰hde, kohde, "Firefox"
+    End If
+
+    ' Custom Thunderbird binary copy
+    If eithunderia = 0 Then
+        l‰hde = asennusmaindir & "\thunderbird\thunderbird.exe"
+        kohde = thunderbirdPath
+        CopyWithCheck l‰hde, kohde, "Thunderbird"
+    End If
+
+    ' Google Chrome shortcut
     If Check1(0).Value = 1 Then
         l‰hde = asennusmaindir & "\GoogleChrome\googlechrome.exe"
         kohde = ohjelmavalikko & "Google Chrome.exe"
-        FileCopy l‰hde, kohde
-        Check1(0).Enabled = False
+        CopyWithCheck l‰hde, kohde, "Google Chrome"
     End If
 
+    ' MX File Manager
     If Check1(2).Value = 1 Then
         l‰hde = asennusmaindir & "\Thunar\Thunar.exe"
         kohde = ohjelmavalikko & "MX File Manager.exe"
-        FileCopy l‰hde, kohde
-        Check1(2).Enabled = False
+        CopyWithCheck l‰hde, kohde, "MX File Manager"
     End If
 
+    ' Terminal
     If Check1(3).Value = 1 Then
         l‰hde = asennusmaindir & "\terminaali\Terminal.exe"
         kohde = ohjelmavalikko & "Terminal.exe"
-        FileCopy l‰hde, kohde
-        Check1(3).Enabled = False
+        CopyWithCheck l‰hde, kohde, "Terminal"
     End If
 
-    ' VLC-asennus
-    If Check1(1).Value = 1 Then
-        Dim vlcInstaller As String
-        Dim vlcSourceExe As String
-        Dim vlcTargetExe As String
-
-        vlcInstaller = asennusmaindir & "\vlc\vlc-2.0.2-win32.exe"
-        vlcSourceExe = asennusmaindir & "\vlc\Vlc.exe"
-        vlcTargetExe = Environ$("ProgramFiles") & "\VideoLAN\VLC\vlc.exe"
-
-        Shell vlcInstaller, vbNormalFocus
-        MsgBox "Please complete VLC installation and press OK when ready.", vbInformation, "Step 3"
-
-        FileCopy vlcSourceExe, vlcTargetExe
-        If Dir(vlcTargetExe) <> "" Then
-            MsgBox "VLC customized binary installed.", vbInformation, "Step 3 Complete"
-            Check1(1).Enabled = False
-        Else
-            MsgBox "VLC replacement failed. Please copy manually if needed.", vbExclamation, "Warning"
-        End If
-    End If
-
-    ' Chromium
+    ' Chromium Dock
     If Check1(5).Value = 1 Then
         l‰hde = asennusmaindir & "\Cromium\Chromium.exe"
         kohde = ohjelmavalikko & "Chromium.exe"
-        FileCopy l‰hde, kohde
-        Check1(5).Enabled = False
+        CopyWithCheck l‰hde, kohde, "Chromium"
     End If
 
-    ' CuteWriter PDF tulostin
+    ' CuteWriter PDF
     If Check1(6).Value = 1 Then
         Shell Chr$(34) & asennusmaindir & "\Utils\CuteWriter30.exe" & Chr$(34), vbNormalFocus
-        MsgBox "Complete the CuteWriter installation and press OK to continue.", vbInformation, "CuteWriter"
-        Check1(6).Enabled = False
+        MsgBox "Complete CuteWriter installation and press OK to continue.", vbInformation
     End If
 
-    ' Thunderbird
-    MsgBox "Thunderbird will now start." & vbCrLf & _
-           "IMPORTANT: Do not create an email account." & vbCrLf & _
-           "When it starts, set it as the default email application," & vbCrLf & _
-           "then close Thunderbird.", _
-           vbInformation, "Instructions"
-
-    Shell Chr$(34) + asennusmaindir & "\thunderbird\Thunderbird Setup 1.5.0.14.exe" + Chr$(34), vbNormalFocus
-    MsgBox "Press OK once Thunderbird has been closed.", vbInformation, "Continue"
-
-    l‰hde = asennusmaindir & "\thunderbird\thunderbird.exe"
-    kohde = ohjelmavalikko & "Thunderbird.exe"
-    FileCopy l‰hde, kohde
-    If Dir(kohde) <> "" Then
-        MsgBox "Thunderbird menu shortcut created.", vbInformation, "Done"
-    Else
-        MsgBox "Thunderbird copy failed. Please copy manually if needed.", vbExclamation, "Warning"
+    ' XPServ startup
+    Dim startupFolder As String
+    startupFolder = Space(260)
+    If SHGetSpecialFolderPath(0, startupFolder, &H7, False) Then
+        startupFolder = Left$(startupFolder, InStr(startupFolder, vbNullChar) - 1)
+        If Right$(startupFolder, 1) <> "\" Then startupFolder = startupFolder & "\"
+        l‰hde = asennusmaindir & "\xpserv\xpserv.exe"
+        kohde = startupFolder & "xpserv.exe"
+        CopyWithCheck l‰hde, kohde, "XPServ"
     End If
 
-    ' Firefox
-    MsgBox "Firefox will now start." & vbCrLf & _
-           "Please set it as the default browser when prompted," & vbCrLf & _
-           "then close the application to continue.", _
-           vbInformation, "Instructions"
-
-    Shell Chr$(34) + asennusmaindir & "\Firefox\Firefox Setup 40.0.exe" + Chr$(34), vbNormalFocus
-    MsgBox "Press OK once Firefox has been closed.", vbInformation, "Continue"
-
-    l‰hde = asennusmaindir & "\Firefox\Firefox.exe"
-    kohde = ohjelmavalikko & "Firefox.exe"
-    FileCopy l‰hde, kohde
-    If Dir(kohde) <> "" Then
-        MsgBox "Firefox menu shortcut created.", vbInformation, "Done"
-    Else
-        MsgBox "Firefox copy failed. Please copy manually if needed.", vbExclamation, "Warning"
+    ' Calendar to Startup (Check1(4))
+    If Check1(4).Value = 1 Then
+        l‰hde = asennusmaindir & "\Utils\calendar\calendar.exe"
+        kohde = startupFolder & "calendar.exe"
+        CopyWithCheck l‰hde, kohde, "Calendar Utility"
     End If
 
     ' Desktop Maker
-    Dim deskL‰hde As String, deskKohdeDir As String, deskKohdeExe As String
-    deskL‰hde = asennusmaindir & "\Utils\Desktop maker\Desktop maker.exe"
+    Dim deskKohdeDir As String, deskKohdeExe As String
     deskKohdeDir = Environ$("ProgramFiles") & "\Desktop maker\"
     deskKohdeExe = deskKohdeDir & "Desktop maker.exe"
-
     If Dir(deskKohdeDir, vbDirectory) = "" Then MkDir deskKohdeDir
-    FileCopy deskL‰hde, deskKohdeExe
+    l‰hde = asennusmaindir & "\Utils\Desktop maker\Desktop maker.exe"
+    CopyWithCheck l‰hde, deskKohdeExe, "Desktop Maker"
 
-    ' OCX-komponentti
-    Dim ocxL‰hde As String
-    Dim ocxKohde As String
-
+    ' COMDLG32.OCX (optional)
+    Dim ocxL‰hde As String, ocxKohde As String
     ocxL‰hde = asennusmaindir & "\Utils\Desktop maker\COMDLG32.OCX"
     ocxKohde = Environ$("SystemRoot") & "\System32\COMDLG32.OCX"
-
-    On Error Resume Next
-    FileCopy ocxL‰hde, ocxKohde
-
-    If Dir(deskKohdeExe) <> "" And Dir(ocxKohde) <> "" Then
-        MsgBox "Desktop Maker will now start. Use it to create a shortcut for itself on the desktop. After that, you can use it to make shortcuts for other programs.", vbInformation, "Desktop Shortcut"
-        Shell deskKohdeExe, vbNormalFocus
-    Else
-        MsgBox "Desktop maker installation failed. Please copy and run manually if needed.", vbExclamation, "Warning"
+    If Dir(ocxKohde) = "" Then
+        CopyWithCheck ocxL‰hde, ocxKohde, "COMDLG32.OCX"
     End If
 
-    ' xdg-open.exe asennus C:\WINDOWS-hakemistoon
-    l‰hde = asennusmaindir & "\xdg-open\xdg-open.exe"
-    kohde = windowsDir & "xdg-open.exe"
-    FileCopy l‰hde, kohde
+    If MsgBox("Do you want to run Desktop Maker now to create a shortcut to it on your Linux desktop?", _
+              vbYesNo + vbQuestion, "Launch Desktop Maker?") = vbYes Then
+        Shell Chr$(34) & deskKohdeExe & Chr$(34), vbNormalFocus
+    End If
 
-    Command1.Enabled = True
-    MsgBox "XP-side installation is now complete." & vbCrLf & _
-       "You may now start using MX∑Link∑XP.", vbInformation, "Installation Complete"
     End
 End Sub
 
@@ -379,7 +414,7 @@ End If
     Me.BackColor = s‰vy
 
     ' Fonttiasetukset
-    Me.Font.Name = "Tahoma"
+    Me.Font.name = "Tahoma"
     Me.Font.Size = 9
 
     Dim ctrl As Control
@@ -388,7 +423,7 @@ End If
         ctrl.BackColor = s‰vy
 
         ' Aseta fontti kaikille ohjaimille
-        ctrl.Font.Name = "Tahoma"
+        ctrl.Font.name = "Tahoma"
         ctrl.Font.Size = 9
 
         ' Tee painikkeista lihavoituja (esim. "Next")

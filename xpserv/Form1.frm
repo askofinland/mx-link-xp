@@ -184,6 +184,19 @@ If Mid$(homedirri.path, f%, 1) = "\" Then
    Exit For
 End If
 Next
+If startdir$ <> "" Then
+   If ReadINI("Aja", "start", "", startdir$ + "\aja.ini") = "false" Or ReadINI("Aja", "start", "", startdir$ + "\aja.ini") = "" Then
+         WritePrivateProfileString "Aja", "exe", "/usr/bin/XPserver start", startdir$ + "\aja.ini"
+         WritePrivateProfileString "Aja", "path", "c:\windows\command", startdir$ + "\aja.ini"
+         WritePrivateProfileString "Aja", "start", "true", startdir$ + "\aja.ini"
+         WritePrivateProfileString "Aja", "system", "unix", startdir$ + "\aja.ini"
+         WritePrivateProfileString "Aja", "aktivoi", "", startdir$ + "\aja.ini"
+    End If
+End If
+
+
+
+
 End Sub
 
 
