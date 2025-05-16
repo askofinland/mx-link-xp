@@ -1,4 +1,0 @@
-setupXP.c(53): Warning! W303: Parameter 'nCmdShow' has been defined, but not referenced
-setupXP.c(53): Warning! W303: Parameter 'hPrev' has been defined, but not referenced
-setupXP.c(53): Warning! W303: Parameter 'hInst' has been defined, but not referenced
-setupXP.c(53): Warning! W303: Parameter 'lpCmdLine' has been defined, but not referenced
