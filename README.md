@@ -55,9 +55,9 @@ Download the `MXP.zip` archive and extract to:
 ### 2. Install Linux Components
 
 ```bash
-cd ~/MXP/setup
-chmod +x install.sh
-./install.sh
+cd ~/MXP/
+chmod +x ~/MXP/setup/install.sh
+~/MXP/setup/install.sh
 ```
 
 Answer the prompt for RAM disk size (default: 512M).
