@@ -55,10 +55,11 @@ Lataa `MXP.zip`-paketti ja pura se hakemistoon:
 ### 2. Asenna Linux-komponentit
 
 ```bash
-cd ~/MXP/setup
-chmod +x install.sh
-./install.sh
+cd ~/MXP/
+chmod +x ~/MXP/setup/install.sh
+~/MXP/setup/install.sh
 ```
+
 
 Vastaa RAM-levyn koko -kysymykseen (oletus: 512M).
 
