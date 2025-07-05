@@ -1,30 +1,53 @@
 VERSION 5.00
 Begin VB.Form Form1 
-   BorderStyle     =   3  'Fixed Dialog
+   BorderStyle     =   1  'Fixed Single
    Caption         =   "MXP server"
-   ClientHeight    =   1800
+   ClientHeight    =   732
    ClientLeft      =   36
    ClientTop       =   420
    ClientWidth     =   2940
+   ControlBox      =   0   'False
    Icon            =   "Form1.frx":0000
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
-   ScaleHeight     =   1800
+   ScaleHeight     =   732
    ScaleWidth      =   2940
-   ShowInTaskbar   =   0   'False
    Visible         =   0   'False
    Begin VB.DirListBox homedirri 
       Height          =   504
       Left            =   1080
       TabIndex        =   0
-      Top             =   360
+      Top             =   1320
       Width           =   1092
+      Visible         =   0   'False
    End
    Begin VB.Timer Timer1 
       Interval        =   500
       Left            =   360
+      Top             =   1320
+   End
+   Begin VB.Label Label1 
+      Alignment       =   2  'Center
+      Appearance      =   0  'Flat
+      BackColor       =   &H80000005&
+      BackStyle       =   0  'Transparent
+      Caption         =   "Wait..."
+      BeginProperty Font 
+         Name            =   "MS Sans Serif"
+         Size            =   18
+         Charset         =   0
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      ForeColor       =   &H80000008&
+      Height          =   372
+      Left            =   0
+      TabIndex        =   1
       Top             =   120
+      Width           =   2892
    End
 End
 Attribute VB_Name = "Form1"
@@ -169,6 +192,28 @@ Dim a$
 Dim b$
 Dim c$
 Dim dr%
+Dim t
+Dim oldt
+Form1.Visible = True
+DoEvents
+t = Timer
+oldt = t
+Do Until Timer - t > 5
+If Int(Timer - t) <> oldt Then
+   oldt = Int(Timer - t)
+   If 5 - oldt > 4 Then
+       Label1.Caption = "Preparing..."
+   Else
+       Label1.Caption = "Wait" + Str$(5 - oldt) + " Seconds"
+       Me.Left = (Screen.Width - Me.Width) \ 2
+       Me.Top = (Screen.Height - Me.Height) \ 2
+   End If
+  DoEvents
+
+End If
+Loop
+
+Form1.Visible = False
 Dim startdrive$
 On Error Resume Next
 For f% = Asc("a") To Asc("z")

@@ -1,4 +1,4 @@
-# 🖥️ MX·Link·XP – Versio 1.0
+# 🖥️ MX·Link·XP – Versio 1.04
 
 **MX·Link·XP** on älykäs integrointikerros, joka yhdistää modernin **Linux**-työpöydän ja perinteisen **Windows XP** -ympäristön. Sen avulla voit suorittaa jokaisen tehtävän siellä, missä se toimii parhaiten — ilman verkkoyhteyttä, nopeasti ja saumattomasti.
 
@@ -11,7 +11,7 @@ MX·Link·XP ei ole pelkkä asennusohjelma — vaan **kaksisuuntainen käyttöli
 - Windows XP hoitaa **vanhat ohjelmat** (esim. Winamp, vanhat Office-tiedostot) täydellä nopeudella ja yhteensopivuudella
 - Linux hoitaa **modernit tehtävät** (esim. verkkoselaus, tulostus, tiedostonhallinta)
 
-Tämä on mahdollista jaetun RAM-levyn (`aja.ini` + `.pdf`-tulostusjono) ja molempien järjestelmien apuohjelmien ansiosta.
+Tämä on mahdollista jaetun RAM-levyn (`aja.ini` + `tulosta.ps`-tulostusjono) ja molempien järjestelmien apuohjelmien ansiosta.
 
 ---
 
@@ -21,7 +21,7 @@ Tämä on mahdollista jaetun RAM-levyn (`aja.ini` + `.pdf`-tulostusjono) ja mole
 - 📂 Jaetut kansiot: Linuxin kotihakemisto näkyy XP:ssä aseman Z:\ kautta
 - 🧠 Keskitetty INI-tiedosto (`aja.ini`) kommunikointia varten
 - 🔄 Täysin kaksisuuntainen logiikka (XP ↔ Linux)
-- 🖨️ XP tulostaa Linuxin ajureilla (PDF → tulostin)
+- 🖨️ XP tulostaa RedMonin ja Tulosta.exe-ohjelman avulla Linuxin oletustulostimeen
 - 🚫 XP:llä ei ole verkkoyhteyttä — **100 % offline ja turvallinen**
 - 🔒 Ei rekisterimuutoksia eikä kolmannen osapuolen palveluita XP:ssä
 - 📦 Kaikki binäärit ja lähdekoodi mukana
@@ -40,6 +40,7 @@ Tämä on mahdollista jaetun RAM-levyn (`aja.ini` + `.pdf`-tulostusjono) ja mole
 | `setup1.exe`     | XP       | Graafinen asennusohjelma                      |
 | `install.sh`     | Linux    | Asentaa Linuxin taustapalvelut ja RAM-levyn   |
 | `Desktop maker`  | XP       | Luo pikakuvakkeita manuaalisesti              |
+| `MenuMaker`      | Linux    | Graafinen työkalu XP-käynnistimien luontiin Linux-ohjelmista |
 
 ---
 
@@ -55,10 +56,9 @@ Lataa `MXP.zip`-paketti ja pura se hakemistoon:
 ### 2. Asenna Linux-komponentit
 
 ```bash
-cd ~/MXP/setup
-chmod +x install.sh
-./install.sh
-```
+cd ~/MXP/
+chmod +x setup/install.sh
+./setup/install.sh```
 
 Vastaa RAM-levyn koko -kysymykseen (oletus: 512M).
 
@@ -126,23 +126,94 @@ Asennus automaattisesti käynnistyväksi XP:ssä:
 🛠️ [Katso koko README →](MXP/Utils/calendar/README.md)
 
 ---
+## Uutta versiossa 1.04
 
-### 🔁 Linstart (XP → Linux komentolähetys)
+- Tulostustuki XP:stä RedMonin avulla
+- `Tulosta.exe`: uusi tulostuksen käsittelyohjelma
+- Ajavahdin tuki RAM-levylle ohjatuille PS-tulosteille
+- Käyttöönotto ei vaadi verkkotulostinta tai XP-verkkokorttia
 
-Komentoriviltä ajettava työkalu, jolla XP voi pyytää Linuxia käynnistämään ohjelmia. Käyttää jaettua RAM-levyä (`aja.ini`).
+## Asennusohjeet XP:lle
 
-- ✅ Yksi EXE — ei vaadi asennusta  
-- ✅ Mahdollistaa XP-ohjelmista Linux-komentojen lähettämisen  
-- 📂 Sijainti: `Z:\MXP\Utils\Linstart\linstart.exe`
+### 1. Asenna HP-ajuri
 
-Esimerkki:
-```cmd
-linstart /usr/bin/thunar
+- Ohjauspaneeli → Tulostimet ja faksit → Lisää tulostin
+- Valitse portiksi **LPT1:**
+- Valmistaja: **HP**
+- Malli: **HP Color LaserJet PS**
+- Viimeistele asennus normaalisti
+
+### 2. Asenna RedMon
+
+- Siirry kansioon `Z:\MXP\Printteri\redmon\`
+- Aja `setup.exe` ja seuraa ohjeita
+
+### 3. Luo RedMon-portti (RPT1:)
+
+- Avaa HP-tulostimen ominaisuudet → välilehti **Portit**
+- Valitse **Lisää portti** → Redirected Port → nimeksi `RPT1:`
+- Valitse `RPT1:` ja paina **Määritä portti**
+
+Asetukset:
+
+- **Program to run**: `Z:\MXP\Printteri\Tulosta.exe`
+- **Arguments**: *(tyhjäksi)*
+- Poista valinta kohdasta **Prompt for filename**
+- Laita valinta kohtaan **Run as user**
+
+### 4. Ota RPT1: käyttöön
+
+- Tulostimen ominaisuudet → Portit → Valitse `RPT1:` aktiiviseksi portiksi
+
+### 5. Testitulostus
+
+- Avaa esim. Muistio ja tulosta testisivu
+
+## Linux-puolen tulostusdaemon
+
+**ajavahti**-ohjelma tarkkailee RAM-levyä (esim. `/home/kuetron/ramdisk` tai `Z:\RAMDISK`) ja käsittelee PDF/PS-tiedostot, jotka `Tulosta.exe` sinne tallentaa.
+
+Tiedostot tulostetaan automaattisesti Linuxin oletustulostimeen, jonka voi testata komennolla:
+
+```bash
+lp testisivu.pdf
 ```
 
-🛠️ [Katso koko README →](MXP/Utils/Linstart/README.md)
+## Tulosta.exe
+
+XP:lle asennettava kevyt .exe-ohjelma, joka toimii RedMonin kautta ja ohjaa tulostuksen RAM-levylle.
+
+## Yhteenveto
+
+RedMon lisää XP:lle virtuaalisen tulostinportin, joka ohjaa tulostuksen `Tulosta.exe`:lle. Tämä ohjelma kirjoittaa tiedoston RAM-levylle, josta Linuxin ajavahti käsittelee ja tulostaa sen. Ratkaisu ei vaadi verkkoasetuksia eikä muuta kuin toimivan XP:n ja RedMon-portin asetukset.
 
 ---
+
+## 📢 Versiopäivitys 1.03 → 1.04
+
+Päivittääksesi version 1.03 → 1.04:
+
+1. **Kopioi kaikki** uudet kansiot ja tiedostot `MXP.zip`-paketista vanhan päälle (korvaa kysyttäessä).
+2. Aja **Linuxissa**:
+   ```bash
+   ./setup/install.sh
+   ```
+   Tämä päivittää `ajavahti`-ohjelman ja muut taustaprosessit.  
+   Asennus kysyy myös, haluatko asentaa uuden **MenuMaker**-työkalun. Vastaa `k/e`.
+
+3. Aja **XP:ssä**:
+   - `setup\setup.exe`
+
+4. Asenna **RedMon** XP:lle:
+   - Suorita `Z:\MXP\Printteri\redmon\setup.exe`
+   - Määritä RedMon-portti (esim. `RPT1:`) viittaamaan `Tulosta.exe`
+
+5. Lisää ja määritä XP:lle tulostin:
+   - Valitse **HP Color LaserJet PS**
+   - Valitse portiksi **RPT1:**
+
+Tulostus XP:stä Linuxiin on nyt valmis.
+
 
 ## 🙋 Kiitokset & lahjoitukset
 

@@ -1,0 +1,21 @@
+!define BLANK ""
+E:\MXP\Printteri\koodi.obj : E:\MXP\Printteri\koodi.c .AUTODEPEND
+ @E:
+ cd E:\MXP\Printteri
+ *wcc386 koodi.c -i="C:\WATCOM/h;C:\WATCOM/h/nt" -w4 -e25 -zq -od -d2 -6r -b&
+t=nt -fo=.obj -mf
+
+E:\MXP\Printteri\Tulosta.exe : E:\MXP\Printteri\koodi.obj .AUTODEPEND
+ @E:
+ cd E:\MXP\Printteri
+ @%write Tulosta.lk1 FIL koodi.obj
+ @%append Tulosta.lk1 
+!ifneq BLANK ""
+ *wlib -q -n -b Tulosta.imp 
+ @%append Tulosta.lk1 LIBR Tulosta.imp
+!endif
+!ifneq BLANK ""
+ @%append Tulosta.lk1 
+!endif
+ *wlink name Tulosta d all sys nt op m op maxe=25 op q op symf @Tulosta.lk1
+

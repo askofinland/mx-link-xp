@@ -33,7 +33,7 @@ Begin VB.Form Form1
       EndProperty
       Height          =   492
       Left            =   120
-      TabIndex        =   10
+      TabIndex        =   9
       Top             =   1560
       Width           =   2772
    End
@@ -60,8 +60,8 @@ Begin VB.Form Form1
          Height          =   252
          Index           =   4
          Left            =   240
-         TabIndex        =   12
-         Top             =   2520
+         TabIndex        =   11
+         Top             =   2160
          Value           =   1  'Checked
          Width           =   5772
       End
@@ -78,20 +78,9 @@ Begin VB.Form Form1
          EndProperty
          Height          =   492
          Left            =   1560
-         TabIndex        =   11
+         TabIndex        =   10
          Top             =   2880
          Width           =   3492
-      End
-      Begin VB.CheckBox Check1 
-         BackColor       =   &H00C0FFFF&
-         Caption         =   "CuteWriter PDF printer install"
-         Height          =   252
-         Index           =   6
-         Left            =   240
-         TabIndex        =   9
-         Top             =   2160
-         Value           =   1  'Checked
-         Width           =   5772
       End
       Begin VB.CheckBox Check1 
          BackColor       =   &H00C0FFFF&
@@ -202,6 +191,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Dim asennusmode%
 Dim asennusmaindir As String
+Dim asennaopenwatcom As Integer
 
 Private Declare Function SHGetSpecialFolderPath Lib "shell32.dll" Alias "SHGetSpecialFolderPathA" ( _
     ByVal hwndOwner As Long, _
@@ -211,6 +201,48 @@ Private Declare Function SHGetSpecialFolderPath Lib "shell32.dll" Alias "SHGetSp
 
 Private Const MAX_PATH = 260
 Private Const CSIDL_COMMON_PROGRAMS = &H17  ' Tämä on tärkein kohta
+
+Private Declare Function RegCreateKeyEx Lib "advapi32.dll" Alias "RegCreateKeyExA" ( _
+    ByVal hKey As Long, ByVal lpSubKey As String, ByVal Reserved As Long, _
+    ByVal lpClass As String, ByVal dwOptions As Long, ByVal samDesired As Long, _
+    ByVal lpSecurityAttributes As Long, phkResult As Long, _
+    lpdwDisposition As Long) As Long
+
+Private Declare Function RegSetValueEx Lib "advapi32.dll" Alias "RegSetValueExA" ( _
+    ByVal hKey As Long, ByVal lpValueName As String, ByVal Reserved As Long, _
+    ByVal dwType As Long, lpData As Any, ByVal cbData As Long) As Long
+
+Private Declare Function RegCloseKey Lib "advapi32.dll" ( _
+    ByVal hKey As Long) As Long
+
+Private Const HKEY_LOCAL_MACHINE = &H80000002
+Private Const KEY_WRITE = &H20006
+Private Const REG_SZ = 1
+
+Sub GhostscriptInstall()
+    Dim hKey As Long
+    Dim result As Long
+    Dim keyPath As String
+    keyPath = "SOFTWARE\GPL Ghostscript\9.06"
+    
+    ' Create or open the registry key
+    result = RegCreateKeyEx(HKEY_LOCAL_MACHINE, keyPath, 0, vbNullString, 0, KEY_WRITE, 0, hKey, 0)
+    
+    If result = 0 Then
+        ' Set GS_DLL value
+        Dim dllPath As String
+        dllPath = "C:\Program Files\GPLGS\gsdll32.dll"
+        RegSetValueEx hKey, "GS_DLL", 0, REG_SZ, ByVal dllPath, Len(dllPath)
+        
+        ' Set GS_LIB value
+        Dim libPath As String
+        libPath = "C:\Program Files\GPLGS"
+        RegSetValueEx hKey, "GS_LIB", 0, REG_SZ, ByVal libPath, Len(libPath)
+        
+        ' Close the key
+        RegCloseKey hKey
+    End If
+End Sub
 
 Private Sub CopyWithCheck(ByVal src As String, ByVal dst As String, ByVal name As String)
     On Error Resume Next
@@ -349,12 +381,6 @@ Private Sub Command4_Click()
         CopyWithCheck lähde, kohde, "Chromium"
     End If
 
-    ' CuteWriter PDF
-    If Check1(6).Value = 1 Then
-        Shell Chr$(34) & asennusmaindir & "\Utils\CuteWriter30.exe" & Chr$(34), vbNormalFocus
-        MsgBox "Complete CuteWriter installation and press OK to continue.", vbInformation
-    End If
-
     ' XPServ startup
     Dim startupFolder As String
     startupFolder = Space(260)
@@ -372,6 +398,18 @@ Private Sub Command4_Click()
         kohde = startupFolder & "calendar.exe"
         CopyWithCheck lähde, kohde, "Calendar Utility"
     End If
+    
+    ' Asenna OpenWatcom tarvittaessa
+    If asennaopenwatcom = 1 Then
+        Dim watcomPolku As String
+        watcomPolku = asennusmaindir & "\Utils\open-watcom-2_0-c-win-x86.exe"
+        If Dir(watcomPolku) <> "" Then
+            MsgBox "OpenWatcom installation will now start.", vbInformation, "Installing OpenWatcom"
+            Shell watcomPolku, vbNormalFocus
+        Else
+            MsgBox "OpenWatcom installer not found:" & vbCrLf & watcomPolku, vbExclamation, "Installer Missing"
+        End If
+    End If
 
     ' Desktop Maker
     Dim deskKohdeDir As String, deskKohdeExe As String
@@ -380,6 +418,11 @@ Private Sub Command4_Click()
     If Dir(deskKohdeDir, vbDirectory) = "" Then MkDir deskKohdeDir
     lähde = asennusmaindir & "\Utils\Desktop maker\Desktop maker.exe"
     CopyWithCheck lähde, deskKohdeExe, "Desktop Maker"
+    
+    ' Kopioi linsrarter.exe C:\Windows-kansioon
+    lähde = asennusmaindir & "\Utils\MenuMaker_for_XP\linsrarter.exe"
+    kohde = Environ$("SystemRoot") & "\linsrarter.exe"
+    CopyWithCheck lähde, kohde, "linsrarter.exe"
 
     ' COMDLG32.OCX (optional)
     Dim ocxLähde As String, ocxKohde As String
@@ -400,12 +443,30 @@ End Sub
 Private Sub Form_Load()
 Dim f As Integer
 asennusmode% = 0
+asennaopenwatcom = 0
 asennusmaindir = Left$(CurDir$, InStr(CurDir$, "\setup") - 1)
 If MsgBox("This will install MX·Link·XP software from the following directory:" & vbCrLf & _
           asennusmaindir & vbCrLf & vbCrLf & "Do you want to continue?", _
           vbYesNo + vbQuestion, "MX·Link·XP Installer") = vbNo Then
     End
 End If
+' Tarkista onko linux.log olemassa
+If Dir(asennusmaindir & "\setup\linux.log") = "" Then
+    MsgBox "Please run the Linux install script first." & vbCrLf & "(Missing: setup\linux.log)", vbCritical, "Setup error"
+    End
+End If
+
+' Tutki linux.log ja päätä asennetaanko OpenWatcom
+Open asennusmaindir & "\setup\linux.log" For Input As #1
+Do Until EOF(1)
+    Line Input #1, rivi$
+    If InStr(1, rivi$, "MenuMaker_for_XP OK", vbTextCompare) > 0 Then
+        asennaopenwatcom = 1
+        Exit Do
+    End If
+Loop
+Close #1
+
 
     Dim sävy As Long
     sävy = RGB(230, 255, 255)

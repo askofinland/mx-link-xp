@@ -68,7 +68,7 @@ Sub aktivoilinux()
     'WinKey up
     keybd_event VK_STARTKEY, 0, KEYEVENTF_KEYUP, 0
 
-         WritePrivateProfileString "Aja", "exe", "start.exe /unix /usr/bin/firefox", startdir$ + "\aja.ini"
+         WritePrivateProfileString "Aja", "exe", "/usr/bin/firefox", startdir$ + "\aja.ini"
          WritePrivateProfileString "Aja", "path", "c:\windows\command", startdir$ + "\aja.ini"
          WritePrivateProfileString "Aja", "start", "true", startdir$ + "\aja.ini"
          WritePrivateProfileString "Aja", "system", "unix", startdir$ + "\aja.ini"
@@ -152,7 +152,7 @@ If startdir$ <> "" Then
             End
          Else
             WritePrivateProfileString "Aja", "aktivoi", "firefox", startdir$ + "\aja.ini"
-            WritePrivateProfileString "Aja", "exe", "start.exe /unix /usr/bin/firefox", startdir$ + "\aja.ini"
+            WritePrivateProfileString "Aja", "exe", "/usr/bin/firefox", startdir$ + "\aja.ini"
             If ReadINI("Firefox", "Lock", "", startdir$ + "\aja.ini") <> "True" Then
                WritePrivateProfileString "Firefox", "Lock", "True", startdir$ + "\aja.ini"
              Else

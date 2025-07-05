@@ -1,102 +1,155 @@
 #!/bin/bash
-echo "=== MX·Link·XP Installer ==="
+echo "=== MX·Link·XP 1.04 Installer ==="
 
 # Estetään sudona ajo
 if [ "$EUID" -eq 0 ]; then
   echo "⚠️  Do NOT run this script with sudo!"
-  echo "   It must be run as a normal user so we can detect your Desktop folder correctly."
+  echo "   Run as normal user to detect Desktop and home paths correctly."
   exit 1
 fi
+# 0. Yhdistetään Watcom-asennuspalat, jos löytyvät
+BASE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+PARTS_PATH="$BASE_DIR/Utils/open-watcom.part.*"
+TARGET_FILE="$BASE_DIR/Utils/open-watcom-2_0-c-win-x86.exe"
 
-# 1. Varmistetaan, että tarvittavat tiedostot löytyvät
-if [ ! -f Ajavahti/ajavahti ] || [ ! -f xpasso/xpasso ] || [ ! -f Iniwriter/iniwriter ]; then
-    echo "❌ Required binaries not found in project directories!"
-    echo "   Make sure you run this from the MX-Link-XP project root."
-    exit 1
+if ls $PARTS_PATH 1> /dev/null 2>&1; then
+  echo "🛠️  Watcom installer parts found. Merging into one file..."
+  echo "⏳ Please wait a moment – this might take a while. Don’t panic, we’ve got this! 😄"
+  cat $PARTS_PATH > "$TARGET_FILE"
+  echo "✅ Watcom ready: $(basename "$TARGET_FILE")"
 fi
+
+# Nollataan asennusloki
+> setup/linux.log
+
+# 1. Varmistetaan että vaaditut binäärit ovat olemassa
+REQUIRED_BINS=(
+  "Ajavahti/ajavahti"
+  "xpasso/xpasso"
+  "Iniwriter/iniwriter"
+  "setup/XPserver"
+)
+
+for bin in "${REQUIRED_BINS[@]}"; do
+  if [ ! -f "$bin" ]; then
+    echo "❌ Missing required file: $bin"
+    echo "$(basename "$bin") FAIL" >> setup/linux.log
+    exit 1
+  fi
+done
 
 # 2. Kysy RAM-levyn koko
 read -p "Enter RAM disk size (default: 512M): " RAMSIZE
 RAMSIZE=${RAMSIZE:-512M}
 
-# 3. Etsi XP .desktop tiedosto
-DESKTOP_FILE=$(ls "$HOME"/Desktop/XP*.desktop 2>/dev/null | head -n1)
-
-# Selvitetään lokalisoitu Desktop-kansio
+# 3. Selvitä lokalisoitu Desktop-kansio
 DESKTOP_DIR=$(xdg-user-dir DESKTOP)
-
-# Sallitaan kirjainkoon huomiotta jättäminen
 shopt -s nocaseglob
-DESKTOP_FILE=$(ls "$DESKTOP_DIR"/xp*.desktop 2>/dev/null | head -n1)
+DESKTOP_FILE=$(find "$DESKTOP_DIR" -iname "*xp*.desktop" | head -n1)
 shopt -u nocaseglob
 
 if [ ! -f "$DESKTOP_FILE" ]; then
-    echo "❌ XP .desktop file not found in Desktop folder: $DESKTOP_DIR"
-    echo "➡️  Please create a VirtualBox or VMware shortcut on your Desktop (e.g. xp.desktop)"
-    exit 1
+  echo "❌ XP .desktop file not found in $DESKTOP_DIR"
+  echo "➡️  Please create a VirtualBox or VMware shortcut on your Desktop (e.g. xp.desktop)"
+  exit 1
 fi
 
-# 4. Poimi Exec-rivi ja tallenna XP_CMD-muuttujaan
+# 4. Poimi Exec-rivi
 XP_CMD=$(grep '^Exec=' "$DESKTOP_FILE" | cut -d= -f2-)
-
 if [ -z "$XP_CMD" ]; then
-    echo "❌ No Exec= line found in $DESKTOP_FILE"
-    exit 1
+  echo "❌ No Exec= line found in $DESKTOP_FILE"
+  exit 1
 fi
 
-# 5. Kopioidaan binäärit /usr/bin
-echo "📁 Copying binaries to /usr/bin..."
-sudo install -m 755 Ajavahti/ajavahti /usr/bin/ || { echo "❌ Failed to install ajavahti"; exit 1; }
-sudo install -m 755 xpasso/xpasso /usr/bin/ || { echo "❌ Failed to install xpasso"; exit 1; }
-sudo install -m 755 Iniwriter/iniwriter /usr/bin/ || { echo "❌ Failed to install iniwriter"; exit 1; }
-echo "✅ Binaries installed successfully."
+# 5. Asenna ytimen binäärit ja kirjaa lokiin
+echo "📁 Installing core binaries to /usr/bin..."
 
-# 5b. Asennetaan XPserver-skripti
-if [ -f setup/XPserver ]; then
-    echo "📁 Installing XPserver to /usr/bin..."
-    sudo install -m 755 setup/XPserver /usr/bin/ || { echo "❌ Failed to install XPserver"; exit 1; }
-    echo "✅ XPserver script installed."
+if sudo install -m 755 Ajavahti/ajavahti /usr/bin/; then
+    echo "Ajavahti OK" >> setup/linux.log
 else
-    echo "⚠️  XPserver script not found at setup/XPserver – skipping."
+    echo "Ajavahti FAIL" >> setup/linux.log
 fi
 
-# 6. Varmistetaan ramdisk-hakemisto
+if sudo install -m 755 xpasso/xpasso /usr/bin/; then
+    echo "xpasso OK" >> setup/linux.log
+else
+    echo "xpasso FAIL" >> setup/linux.log
+fi
+
+if sudo install -m 755 Iniwriter/iniwriter /usr/bin/; then
+    echo "iniwriter OK" >> setup/linux.log
+else
+    echo "iniwriter FAIL" >> setup/linux.log
+fi
+
+if sudo install -m 755 setup/XPserver /usr/bin/; then
+    echo "XPserver OK" >> setup/linux.log
+else
+    echo "XPserver FAIL" >> setup/linux.log
+fi
+
+# 6. Kysy MenuMakerin asennuksesta ja kirjaa lokiin
+read -p "Install MenuMaker_for_XP tool? [y/N]: " install_menu
+if [[ "$install_menu" =~ ^[Yy]$ ]]; then
+  if [ -f Utils/MenuMaker_for_XP/menumaker ]; then
+    if sudo install -m 755 Utils/MenuMaker_for_XP/menumaker /usr/bin/; then
+      echo "MenuMaker_for_XP OK" >> setup/linux.log
+      echo "✅ menumaker installed to /usr/bin"
+    else
+      echo "MenuMaker_for_XP FAIL" >> setup/linux.log
+      echo "❌ Failed to install menumaker"
+    fi
+  else
+    echo "MenuMaker_for_XP FAIL" >> setup/linux.log
+    echo "⚠️ MenuMaker binary not found!"
+  fi
+fi
+
+# 7. XFCE-ulkoasuteemat
+read -p "Install XFCE appearance packages (Windows 10 / XP look)? [y/N]: " install_theme
+if [[ "$install_theme" =~ ^[Yy]$ ]]; then
+  sudo dpkg -i Utils/windows-10-tp_0.9-6.*.deb 2>/dev/null
+  mkdir -p "$HOME/.themes"
+  tar -xzf Utils/Windows_XP_Luna.tar.gz -C "$HOME/.themes"
+  echo "XFCE_Themes OK" >> setup/linux.log
+fi
+
+# 8. Varmista RAM-disk
 mkdir -p "$HOME/ramdisk"
 
-# 7. Luodaan /usr/bin/xp -käynnistysskripti
-echo "📝 Creating /usr/bin/xp launcher script..."
-
+# 9. Luo xp-komentoskripti
+echo "📝 Creating /usr/bin/xp startup launcher..."
 sudo tee /usr/bin/xp > /dev/null <<EOF
 #!/bin/bash
-# MX·Link·XP startup script
-
 RAMDISK="\$HOME/ramdisk"
-
-# Mount RAM disk if not already mounted
 if ! mountpoint -q "\$RAMDISK"; then
-    sudo mount -t tmpfs -o size=$RAMSIZE myramdisk "\$RAMDISK" || { echo "❌ Failed to mount RAM disk."; exit 1; }
+  sudo mount -t tmpfs -o size=$RAMSIZE myramdisk "\$RAMDISK" || { echo "❌ Failed to mount RAM disk."; exit 1; }
 fi
-
-# Start ajavahti in background
 /usr/bin/ajavahti "\$RAMDISK" &
-
-# Launch XP
 $XP_CMD
-
-# XP has exited – cleanup
 sudo umount "\$RAMDISK"
 EOF
-
-# 8. Tehdään skriptistä ajettava
 sudo chmod +x /usr/bin/xp
 
-# 9. Päivitetään .desktop tiedosto
-echo "🛠 Updating .desktop file to use 'Exec=xp'..."
-sed -i 's|^Exec=.*|Exec=xfce4-terminal --working-directory=$HOME -e xp|' "$DESKTOP_FILE"
-echo "✅ Desktop shortcut updated: $DESKTOP_FILE"
+#  Kysy, haluaako käyttäjä ajaa teemojen asentajan
+read -p "🎨 Do you want to run the theme installer script now? (y/n): " run_theme_installer
+if [[ "$run_theme_installer" =~ ^[Yy]$ ]]; then
+    if [ -f Utils/theme_installer.sh ]; then
+        bash Utils/theme_installer.sh
+    else
+        echo "❌ theme_installer.sh not found in Utils/"
+    fi
+fi
 
-# 10. Valmis
+
+# 10. Päivitä .desktop tiedosto
+echo "🛠 Updating Desktop shortcut to use new launcher..."
+sed -i "s|^Exec=.*|Exec=xfce4-terminal --working-directory=$HOME -e xp|" "$DESKTOP_FILE"
+echo "✅ Desktop shortcut updated."
+
+# 11. Valmis
 echo
 echo "✅ Installation complete!"
-echo "➡️  You can now run MX·Link·XP with the command: xp"
-echo "📌 Your XP Desktop shortcut now uses the new xp launcher."
+echo "➡️  Launch XP with the command: xp"
+
+
